@@ -1,9 +1,13 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/ss49919201/myblog/api/internal/usecase"
 )
 
 func NewServer() *http.Server {
@@ -18,7 +22,30 @@ func handler() http.Handler {
 
 	// routes
 	mux.HandleFunc("POST /posts", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotImplemented)
+		var body struct {
+			Title string
+			Body  string
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			err = fmt.Errorf("failed to decode request body: %w", err)
+			SetError(r, err)
+			return
+		}
+
+		out, err := usecase.CreatePost(
+			r.Context(),
+			usecase.CreatePostInput{
+				Title: body.Title,
+				Body:  body.Body,
+			},
+		)
+		if err != nil {
+			SetError(r, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(out.Post.ToJSON()))
 	})
 
 	mux.HandleFunc("PUT /posts/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -66,12 +93,12 @@ func errorMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler.ServeHTTP(w, r)
 
-		err := r.Context().Value("error")
+		err, ok := GetError(r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 
-			if e, ok := err.(error); ok {
-				slog.Error("error", slog.String("error", e.Error()))
+			if ok {
+				slog.Error("error", slog.String("error", err.Error()))
 			} else {
 				slog.Error("error", slog.Any("unknown error", err))
 			}

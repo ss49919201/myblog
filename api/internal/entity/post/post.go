@@ -1,6 +1,7 @@
 package post
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -107,4 +108,13 @@ func Reconstruct(
 		CreatedAt:   createdAt,
 		PublishedAt: time.Now(),
 	}, nil
+}
+
+func (p *Post) ToJSON() string {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
 }
