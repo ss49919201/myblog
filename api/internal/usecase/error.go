@@ -1,7 +1,5 @@
 package usecase
 
-import "errors"
-
 type ErrorKind string
 
 const (
@@ -27,9 +25,4 @@ func (e *Error) Error() string {
 
 func (e *Error) Unwrap() error {
 	return e.err
-}
-
-func MatchErrorKind(err error, kind ErrorKind) bool {
-	var e *Error
-	return errors.As(err, &e) && e.Kind == kind
 }
