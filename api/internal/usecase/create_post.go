@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/ss49919201/myblog/api/internal/entity/post"
 )
 
@@ -13,7 +15,7 @@ type CreatePostOutput struct {
 	Post *post.Post
 }
 
-func CreatePost(input CreatePostInput) (*CreatePostOutput, error) {
+func CreatePost(ctx context.Context, input CreatePostInput) (*CreatePostOutput, error) {
 	if err := post.ValidateForConstruct(input.Title, input.Body); err != nil {
 		return nil, NewErrInvalidParameter(err)
 	}
