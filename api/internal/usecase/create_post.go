@@ -17,7 +17,7 @@ type CreatePostOutput struct {
 
 func CreatePost(ctx context.Context, input CreatePostInput) (*CreatePostOutput, error) {
 	if err := post.ValidateForConstruct(input.Title, input.Body); err != nil {
-		return nil, NewErrInvalidParameter(err)
+		return nil, NewError(ErrInvalidParameter, err)
 	}
 
 	newPost, err := post.Construct(input.Title, input.Body)
