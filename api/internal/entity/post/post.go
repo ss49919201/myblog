@@ -5,17 +5,26 @@ import (
 	"errors"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/ss49919201/myblog/api/internal/id"
 )
 
-type PostID string
+type PostID id.UUID
 
-func ParsePostID(id string) (PostID, error) {
-	return PostID(id), nil
+func emptyPostID() PostID {
+	return PostID{}
+}
+
+func ParsePostID(postId string) (PostID, error) {
+	parsedId, err := id.ParseUUID(postId)
+	if err != nil {
+		return emptyPostID(), err
+	}
+
+	return PostID(parsedId), nil
 }
 
 func NewPostID() PostID {
-	return PostID(uuid.New().String())
+	return PostID(id.GenerateUUID())
 }
 
 type Post struct {
