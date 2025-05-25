@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ss49919201/myblog/api/internal/usecase"
+	"github.com/ss49919201/myblog/api/internal/post/usecase"
 )
 
 func NewServer() *http.Server {

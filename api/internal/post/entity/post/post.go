@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ss49919201/myblog/api/internal/id"
+	"github.com/ss49919201/myblog/api/internal/post/id"
 )
 
 type PostID id.UUID

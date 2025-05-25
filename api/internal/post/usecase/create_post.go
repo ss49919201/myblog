@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/ss49919201/myblog/api/internal/entity/post"
+	"github.com/ss49919201/myblog/api/internal/post/entity/post"
 )
 
 type CreatePostInput struct {
