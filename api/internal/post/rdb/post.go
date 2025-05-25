@@ -3,7 +3,7 @@ package rdb
 import (
 	"errors"
 
-	"github.com/ss49919201/myblog/api/internal/entity/post"
+	"github.com/ss49919201/myblog/api/internal/post/entity/post"
 )
 
 func FindPostByID(id post.PostID) (*post.Post, error) {
