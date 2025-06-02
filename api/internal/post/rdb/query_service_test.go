@@ -99,15 +99,15 @@ func TestCriteriaFindPosts_Build(t *testing.T) {
 
 func TestExprEqID(t *testing.T) {
 	expr := ExprEqID("test-value")
-	
+
 	if expr.Field() != "id" {
 		t.Errorf("ExprEqID.Field() = %v, want %v", expr.Field(), "id")
 	}
-	
+
 	if expr.Value() != "test-value" {
 		t.Errorf("ExprEqID.Value() = %v, want %v", expr.Value(), "test-value")
 	}
-	
+
 	if expr.ValueAsAny() != "test-value" {
 		t.Errorf("ExprEqID.ValueAsAny() = %v, want %v", expr.ValueAsAny(), "test-value")
 	}
@@ -115,15 +115,15 @@ func TestExprEqID(t *testing.T) {
 
 func TestExprEqPublishedAtMillSec(t *testing.T) {
 	expr := ExprEqPublishedAtMillSec(1640995200000)
-	
+
 	if expr.Field() != "published_at" {
 		t.Errorf("ExprEqPublishedAtMillSec.Field() = %v, want %v", expr.Field(), "published_at")
 	}
-	
+
 	if expr.Value() != int64(1640995200000) {
 		t.Errorf("ExprEqPublishedAtMillSec.Value() = %v, want %v", expr.Value(), int64(1640995200000))
 	}
-	
+
 	if expr.ValueAsAny() != int64(1640995200000) {
 		t.Errorf("ExprEqPublishedAtMillSec.ValueAsAny() = %v, want %v", expr.ValueAsAny(), int64(1640995200000))
 	}
