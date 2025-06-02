@@ -2,7 +2,10 @@ module github.com/ss49919201/myblog
 
 go 1.24.0
 
-require github.com/google/uuid v1.6.0
+require (
+	github.com/go-sql-driver/mysql v1.8.1
+	github.com/google/uuid v1.6.0
+)
 
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
