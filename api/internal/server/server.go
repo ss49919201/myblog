@@ -1,12 +1,14 @@
 package server
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ss49919201/myblog/api/internal/post/di"
-	"github.com/ss49919201/myblog/api/internal/post/usecase"
+	"github.com/ss49919201/myblog/api/internal/post/entity/post"
+	"github.com/ss49919201/myblog/api/internal/post/rdb"
 )
 
 type Server struct {
@@ -26,25 +28,23 @@ func (s *Server) PostsRead(c *gin.Context, id string) {
 		return
 	}
 
-	input := usecase.GetPostInput{ID: id}
-	output, err := usecase.GetPost(c.Request.Context(), db, input)
+	postID, err := post.ParsePostID(id)
 	if err != nil {
-		var usecaseErr *usecase.Error
-		if errors.As(err, &usecaseErr) {
-			switch usecaseErr.Kind {
-			case usecase.ErrInvalidParameter:
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post id"})
-				return
-			case usecase.ErrResourceNotFound:
-				c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
-				return
-			}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post id"})
+		return
+	}
+
+	foundPost, err := rdb.FindPostByID(c.Request.Context(), db, postID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) || err.Error() == "post not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, output.Post)
+	c.JSON(http.StatusOK, foundPost)
 }
 
 func (s *Server) PostsList(c *gin.Context) {
