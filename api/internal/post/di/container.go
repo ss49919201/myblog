@@ -16,20 +16,22 @@ var containerOnceValue = sync.OnceValue(func() *Container {
 })
 
 type Container struct {
-	db                 *sql.DB
-	postRepo           repository.PostRepository
-	createPostUsecase  *usecase.CreatePostUsecase
-	updatePostUsecase  *usecase.UpdatePostUsecase
-	deletePostUsecase  *usecase.DeletePostUsecase
-	analyzePostUsecase *usecase.AnalyzePostUsecase
+	dbOnce                 sync.OnceValues[*sql.DB, error]
+	postRepoOnce           sync.OnceValues[repository.PostRepository, error]
+	createPostUsecaseOnce  sync.OnceValues[*usecase.CreatePostUsecase, error]
+	updatePostUsecaseOnce  sync.OnceValues[*usecase.UpdatePostUsecase, error]
+	deletePostUsecaseOnce  sync.OnceValues[*usecase.DeletePostUsecase, error]
+	analyzePostUsecaseOnce sync.OnceValues[*usecase.AnalyzePostUsecase, error]
 }
 
 func NewContainer() *Container {
-	return containerOnceValue()
+	container := containerOnceValue()
+	container.initOnceValues()
+	return container
 }
 
-func (c *Container) DB() (*sql.DB, error) {
-	if c.db == nil {
+func (c *Container) initOnceValues() {
+	c.dbOnce = sync.OnceValues(func() (*sql.DB, error) {
 		dsn := "user:password@tcp(localhost:3306)/rdb?parseTime=true"
 		db, err := sql.Open("mysql", dsn)
 		if err != nil {
@@ -40,59 +42,66 @@ func (c *Container) DB() (*sql.DB, error) {
 			return nil, fmt.Errorf("failed to ping database: %w", err)
 		}
 		
-		c.db = db
-	}
-	
-	return c.db, nil
-}
+		return db, nil
+	})
 
-func (c *Container) PostRepository() (repository.PostRepository, error) {
-	if c.postRepo == nil {
+	c.postRepoOnce = sync.OnceValues(func() (repository.PostRepository, error) {
 		db, err := c.DB()
 		if err != nil {
 			return nil, err
 		}
-		c.postRepo = rdb.NewPostRepository(db)
-	}
-	return c.postRepo, nil
+		return rdb.NewPostRepository(db), nil
+	})
+
+	c.createPostUsecaseOnce = sync.OnceValues(func() (*usecase.CreatePostUsecase, error) {
+		repo, err := c.PostRepository()
+		if err != nil {
+			return nil, err
+		}
+		return usecase.NewCreatePostUsecase(repo), nil
+	})
+
+	c.updatePostUsecaseOnce = sync.OnceValues(func() (*usecase.UpdatePostUsecase, error) {
+		repo, err := c.PostRepository()
+		if err != nil {
+			return nil, err
+		}
+		return usecase.NewUpdatePostUsecase(repo), nil
+	})
+
+	c.deletePostUsecaseOnce = sync.OnceValues(func() (*usecase.DeletePostUsecase, error) {
+		repo, err := c.PostRepository()
+		if err != nil {
+			return nil, err
+		}
+		return usecase.NewDeletePostUsecase(repo), nil
+	})
+
+	c.analyzePostUsecaseOnce = sync.OnceValues(func() (*usecase.AnalyzePostUsecase, error) {
+		return usecase.NewAnalyzePostUsecase(), nil
+	})
+}
+
+func (c *Container) DB() (*sql.DB, error) {
+	return c.dbOnce()
+}
+
+func (c *Container) PostRepository() (repository.PostRepository, error) {
+	return c.postRepoOnce()
 }
 
 func (c *Container) CreatePostUsecase() (*usecase.CreatePostUsecase, error) {
-	if c.createPostUsecase == nil {
-		repo, err := c.PostRepository()
-		if err != nil {
-			return nil, err
-		}
-		c.createPostUsecase = usecase.NewCreatePostUsecase(repo)
-	}
-	return c.createPostUsecase, nil
+	return c.createPostUsecaseOnce()
 }
 
 func (c *Container) UpdatePostUsecase() (*usecase.UpdatePostUsecase, error) {
-	if c.updatePostUsecase == nil {
-		repo, err := c.PostRepository()
-		if err != nil {
-			return nil, err
-		}
-		c.updatePostUsecase = usecase.NewUpdatePostUsecase(repo)
-	}
-	return c.updatePostUsecase, nil
+	return c.updatePostUsecaseOnce()
 }
 
 func (c *Container) DeletePostUsecase() (*usecase.DeletePostUsecase, error) {
-	if c.deletePostUsecase == nil {
-		repo, err := c.PostRepository()
-		if err != nil {
-			return nil, err
-		}
-		c.deletePostUsecase = usecase.NewDeletePostUsecase(repo)
-	}
-	return c.deletePostUsecase, nil
+	return c.deletePostUsecaseOnce()
 }
 
 func (c *Container) AnalyzePostUsecase() (*usecase.AnalyzePostUsecase, error) {
-	if c.analyzePostUsecase == nil {
-		c.analyzePostUsecase = usecase.NewAnalyzePostUsecase()
-	}
-	return c.analyzePostUsecase, nil
+	return c.analyzePostUsecaseOnce()
 }
