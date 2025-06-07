@@ -1,4 +1,4 @@
-import { Post, PostList, AnalyzeResult, ApiError } from '@/types/api';
+import { Post, PostList, ApiError } from '@/types/api';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : '/api';
 
@@ -30,12 +30,5 @@ export const api = {
   // Get a single post by ID
   getPost: (id: string): Promise<Post> => {
     return apiRequest<Post>(`/posts/${id}`);
-  },
-
-  // Analyze a post
-  analyzePost: (id: string): Promise<AnalyzeResult> => {
-    return apiRequest<AnalyzeResult>(`/posts/${id}/analyze`, {
-      method: 'POST',
-    });
   },
 };

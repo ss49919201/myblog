@@ -9,11 +9,6 @@ export interface PostList {
   items: Post[];
 }
 
-export interface AnalyzeResult {
-  id: string;
-  analysis: string;
-}
-
 export interface ApiError {
   code: number;
   message: string;

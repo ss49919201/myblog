@@ -4,16 +4,14 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { Post, AnalyzeResult } from '@/types/api';
+import { Post } from '@/types/api';
 
 export default function PostDetail() {
   const params = useParams();
   const id = params.id as string;
   
   const [post, setPost] = useState<Post | null>(null);
-  const [analysis, setAnalysis] = useState<AnalyzeResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,20 +30,6 @@ export default function PostDetail() {
       fetchPost();
     }
   }, [id]);
-
-  const handleAnalyze = async () => {
-    if (!post) return;
-    
-    setAnalyzing(true);
-    try {
-      const result = await api.analyzePost(post.id);
-      setAnalysis(result);
-    } catch (err) {
-      alert('分析に失敗しました');
-    } finally {
-      setAnalyzing(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -89,22 +73,11 @@ export default function PostDetail() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             {post.title}
           </h1>
-          <div className="flex justify-between items-center text-sm text-gray-500">
-            <div>
-              {post.publishdAt 
-                ? `公開日: ${new Date(post.publishdAt).toLocaleDateString('ja-JP')}`
-                : '下書き'
-              }
-            </div>
-            <div>
-              <button
-                onClick={handleAnalyze}
-                disabled={analyzing}
-                className="text-green-600 hover:text-green-900 font-medium disabled:opacity-50"
-              >
-                {analyzing ? '分析中...' : '投稿を分析'}
-              </button>
-            </div>
+          <div className="text-sm text-gray-500">
+            {post.publishdAt 
+              ? `公開日: ${new Date(post.publishdAt).toLocaleDateString('ja-JP')}`
+              : '下書き'
+            }
           </div>
         </header>
 
@@ -114,15 +87,6 @@ export default function PostDetail() {
           </div>
         </div>
       </article>
-
-      {analysis && (
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-green-900 mb-4">分析結果</h3>
-          <div className="text-green-800 whitespace-pre-wrap">
-            {analysis.analysis}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
