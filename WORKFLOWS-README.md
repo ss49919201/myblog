@@ -37,17 +37,6 @@ This directory contains GitHub Actions workflow files for automated CI/CD pipeli
 - Go (backend)
 - JavaScript/TypeScript (frontend)
 
-### 3. Dependency Updates (`dependency-updates.yml`)
-**Purpose**: Automated dependency updates to keep the project secure and up-to-date.
-
-**Triggers**:
-- Weekly schedule (Monday 2:00 AM UTC)
-- Manual trigger via workflow_dispatch
-
-**Actions**:
-- Updates Go module dependencies
-- Updates NPM dependencies for root and web directories
-- Creates pull requests for review
 
 ## Setup Instructions
 
@@ -60,7 +49,6 @@ This directory contains GitHub Actions workflow files for automated CI/CD pipeli
    ```bash
    cp .github-workflows-ci.yml .github/workflows/ci.yml
    cp .github-workflows-codeql.yml .github/workflows/codeql.yml
-   cp .github-workflows-dependency-updates.yml .github/workflows/dependency-updates.yml
    ```
 
 3. **Remove the temporary files**:
@@ -79,7 +67,6 @@ This directory contains GitHub Actions workflow files for automated CI/CD pipeli
 
 ### Repository Settings
 - Enable GitHub Actions in repository settings
-- Grant appropriate permissions for workflows to create pull requests (for dependency updates)
 
 ### Optional Secrets
 - No additional secrets required for basic functionality

@@ -32,7 +32,6 @@ Navigate to `web/` directory first:
   - Frontend: ESLint, TypeScript checks, Next.js build
   - Security: gosec scanning, npm audit
 - **CodeQL**: Weekly security analysis for Go and JavaScript/TypeScript
-- **Dependency Updates**: Weekly automated dependency updates via PRs
 - Integration tests require MySQL service (automatically configured in CI)
 
 ## Architecture Overview
