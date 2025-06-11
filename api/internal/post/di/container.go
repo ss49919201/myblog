@@ -16,12 +16,12 @@ var containerOnceValue = sync.OnceValue(func() *Container {
 })
 
 type Container struct {
-	dbOnce                 sync.OnceValues[*sql.DB, error]
-	postRepoOnce           sync.OnceValues[repository.PostRepository, error]
-	createPostUsecaseOnce  sync.OnceValues[*usecase.CreatePostUsecase, error]
-	updatePostUsecaseOnce  sync.OnceValues[*usecase.UpdatePostUsecase, error]
-	deletePostUsecaseOnce  sync.OnceValues[*usecase.DeletePostUsecase, error]
-	analyzePostUsecaseOnce sync.OnceValues[*usecase.AnalyzePostUsecase, error]
+	dbOnce                 func() (*sql.DB, error)
+	postRepoOnce           func() (repository.PostRepository, error)
+	createPostUsecaseOnce  func() (*usecase.CreatePostUsecase, error)
+	updatePostUsecaseOnce  func() (*usecase.UpdatePostUsecase, error)
+	deletePostUsecaseOnce  func() (*usecase.DeletePostUsecase, error)
+	analyzePostUsecaseOnce func() (*usecase.AnalyzePostUsecase, error)
 }
 
 func NewContainer() *Container {
@@ -37,11 +37,11 @@ func (c *Container) initOnceValues() {
 		if err != nil {
 			return nil, fmt.Errorf("failed to open database: %w", err)
 		}
-		
+
 		if err := db.Ping(); err != nil {
 			return nil, fmt.Errorf("failed to ping database: %w", err)
 		}
-		
+
 		return db, nil
 	})
 

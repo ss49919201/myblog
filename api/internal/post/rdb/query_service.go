@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/ss49919201/myblog/api/internal/post/entity/post"
@@ -181,7 +182,12 @@ func buildAndConditions(conditions []CriteriaFindPosts) (string, []any) {
 		if cond, ok := condition.(*criteriaFindPosts); ok {
 			part, condArgs := buildWhereClause(cond)
 			if part != "" {
-				parts = append(parts, "("+part+")")
+				// Only add parentheses if the part contains multiple conditions
+				if strings.Contains(part, " AND ") || strings.Contains(part, " OR ") {
+					parts = append(parts, "("+part+")")
+				} else {
+					parts = append(parts, part)
+				}
 				args = append(args, condArgs...)
 			}
 		}
@@ -215,7 +221,12 @@ func buildOrConditions(conditions []CriteriaFindPosts) (string, []any) {
 		if cond, ok := condition.(*criteriaFindPosts); ok {
 			part, condArgs := buildWhereClause(cond)
 			if part != "" {
-				parts = append(parts, "("+part+")")
+				// Only add parentheses if the part contains multiple conditions
+				if strings.Contains(part, " AND ") || strings.Contains(part, " OR ") {
+					parts = append(parts, "("+part+")")
+				} else {
+					parts = append(parts, part)
+				}
 				args = append(args, condArgs...)
 			}
 		}

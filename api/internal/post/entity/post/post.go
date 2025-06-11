@@ -10,6 +10,10 @@ import (
 
 type PostID id.UUID
 
+func (p PostID) String() string {
+	return id.UUID(p).String()
+}
+
 func emptyPostID() PostID {
 	return PostID{}
 }

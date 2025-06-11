@@ -29,10 +29,10 @@ func (u *AnalyzePostUsecase) Execute(ctx context.Context, input AnalyzePostInput
 		return nil, err
 	}
 
-	analysis := fmt.Sprintf("Analysis for post %s: This is a sample analysis.", string(postID))
+	analysis := fmt.Sprintf("Analysis for post %s: This is a sample analysis.", postID.String())
 
 	return &AnalyzePostOutput{
-		ID:       string(postID),
+		ID:       postID.String(),
 		Analysis: analysis,
 	}, nil
 }

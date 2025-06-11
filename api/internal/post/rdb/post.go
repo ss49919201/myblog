@@ -12,12 +12,12 @@ import (
 
 func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, error) {
 	query := `SELECT BIN_TO_UUID(id), title, body, created_at, published_at FROM posts WHERE id = UUID_TO_BIN(?)`
-	
-	row := db.QueryRowContext(ctx, query, string(id))
-	
+
+	row := db.QueryRowContext(ctx, query, id.String())
+
 	var idStr, title, body string
 	var createdAt, publishedAt time.Time
-	
+
 	err := row.Scan(&idStr, &title, &body, &createdAt, &publishedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -25,24 +25,24 @@ func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, 
 		}
 		return nil, err
 	}
-	
+
 	postID, err := post.ParsePostID(idStr)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	p, err := post.Reconstruct(postID, title, body, createdAt)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return p, nil
 }
 
 func SavePost(ctx context.Context, db *sql.DB, p *post.Post) error {
 	query := `INSERT INTO posts (id, title, body, created_at, published_at) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`
-	
-	_, err := db.ExecContext(ctx, query, string(p.ID), p.Title, p.Body, p.CreatedAt, p.PublishedAt)
+
+	_, err := db.ExecContext(ctx, query, p.ID.String(), p.Title, p.Body, p.CreatedAt, p.PublishedAt)
 	return err
 }
 
@@ -60,40 +60,40 @@ func (r *PostRepositoryImpl) Save(ctx context.Context, p *post.Post) error {
 
 func (r *PostRepositoryImpl) Update(ctx context.Context, p *post.Post) error {
 	query := `UPDATE posts SET title = ?, body = ?, published_at = ? WHERE id = UUID_TO_BIN(?)`
-	
-	result, err := r.db.ExecContext(ctx, query, p.Title, p.Body, p.PublishedAt, string(p.ID))
+
+	result, err := r.db.ExecContext(ctx, query, p.Title, p.Body, p.PublishedAt, p.ID.String())
 	if err != nil {
 		return err
 	}
-	
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
-	
+
 	if rowsAffected == 0 {
 		return errors.New("post not found")
 	}
-	
+
 	return nil
 }
 
 func (r *PostRepositoryImpl) Delete(ctx context.Context, id post.PostID) error {
 	query := `DELETE FROM posts WHERE id = UUID_TO_BIN(?)`
-	
-	result, err := r.db.ExecContext(ctx, query, string(id))
+
+	result, err := r.db.ExecContext(ctx, query, id.String())
 	if err != nil {
 		return err
 	}
-	
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}
-	
+
 	if rowsAffected == 0 {
 		return errors.New("post not found")
 	}
-	
+
 	return nil
 }
