@@ -133,3 +133,12 @@ When committing changes, Claude Code should evaluate whether CLAUDE.md needs upd
 
 ### Update Process:
 Before committing, check if changes fall into the "update required" categories above. If yes, update the relevant sections in CLAUDE.md to reflect the new patterns or commands.
+
+### Update Rules:
+When updating CLAUDE.md, follow these guidelines:
+1. **Be specific and actionable** - Include exact commands, file paths, and directory structures
+2. **Update related sections** - If adding new commands, also update relevant architecture or file structure sections
+3. **Maintain consistency** - Follow existing formatting and organization patterns
+4. **Include context** - Explain not just what, but why and when to use new features
+5. **Update incrementally** - Add new information without removing existing content unless it's obsolete
+6. **Cross-reference sections** - Ensure Development Commands, Architecture, and Testing Strategy sections are aligned
