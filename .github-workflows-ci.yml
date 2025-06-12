@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  GO_VERSION: '1.24.0'
+  NODE_VERSION: '20'
+
+jobs:
+  # Backend CI Job
+  backend:
+    name: Backend CI (Go)
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: rdb
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+          TZ: "Asia/Tokyo"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        cache: true
+        cache-dependency-path: go.sum
+    
+    - name: Set up Node.js (for TypeSpec)
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install TypeSpec dependencies
+      run: npm install
+    
+    - name: Download Go dependencies
+      run: go mod download
+    
+    - name: Verify Go modules
+      run: go mod verify
+    
+    - name: Install golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: latest
+        args: --timeout=5m
+        working-directory: .
+    
+    - name: Initialize database schema
+      run: |
+        mysql -h127.0.0.1 -P3306 -uuser -ppassword rdb < database/schema.sql
+      env:
+        MYSQL_PWD: password
+    
+    - name: Run Go unit tests
+      run: go test -v -race -short ./...
+    
+    - name: Run Go integration tests
+      run: go test -v -race ./...
+      env:
+        TEST_DB_DSN: "user:password@tcp(localhost:3306)/rdb?parseTime=true"
+    
+    - name: Compile TypeSpec
+      run: npm run tsp-compile
+    
+    - name: Generate OpenAPI code
+      run: make gen-oapi
+    
+    - name: Check for uncommitted changes
+      run: |
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "Generated files are not up to date. Please run 'npm run tsp-compile' and 'make gen-oapi' and commit the changes."
+          git status
+          git diff
+          exit 1
+        fi
+    
+    - name: Build application
+      run: go build -v ./api/internal/cmd
+
+  # Frontend CI Job
+  frontend:
+    name: Frontend CI (Next.js)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: web
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: web/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run ESLint
+      run: npm run lint
+    
+    - name: Type check
+      run: npx tsc --noEmit
+    
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_ENV: production
+    
+    - name: Check build artifacts
+      run: |
+        if [ ! -d ".next" ]; then
+          echo "Build failed: .next directory not found"
+          exit 1
+        fi
+
+  # Security and dependency checks
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Run Go security checks
+      uses: securecodewarrior/github-action-gosec@master
+      with:
+        args: './...'
+    
+    - name: Run npm audit (root)
+      run: npm audit --audit-level=high
+      continue-on-error: true
+    
+    - name: Run npm audit (web)
+      run: npm audit --audit-level=high
+      working-directory: web
+      continue-on-error: true

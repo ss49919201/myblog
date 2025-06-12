@@ -30,6 +30,14 @@ Navigate to `web/` directory first:
 - Database runs on localhost:3306 with credentials: user/password, database: rdb
 - Schema: `database/schema.sql`
 
+### CI/CD (GitHub Actions)
+- **CI Workflow**: Runs on push/PR to main/develop branches
+  - Backend: Go linting, unit/integration tests, TypeSpec compilation
+  - Frontend: ESLint, TypeScript checks, Next.js build
+  - Security: gosec scanning, npm audit
+- **CodeQL**: Weekly security analysis for Go and JavaScript/TypeScript
+- Integration tests require MySQL service (automatically configured in CI)
+
 ## Architecture Overview
 
 ### Backend Structure
