@@ -14,6 +14,10 @@ func (p PostID) String() string {
 	return id.UUID(p).String()
 }
 
+func (p PostID) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + p.String() + `"`), nil
+}
+
 func emptyPostID() PostID {
 	return PostID{}
 }
