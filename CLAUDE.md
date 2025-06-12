@@ -14,6 +14,10 @@ MyBlog is a blog application with a Go backend API and Next.js frontend. The bac
 - `go run ./api/internal/cmd` - Alternative way to start server
 - `npm run tsp-compile` - Compile TypeSpec to generate OpenAPI schema
 
+### Testing
+- `go test ./api/test/integration -v` - Run integration tests (requires MySQL container)
+- Integration tests require: `docker compose up -d mysql` before execution
+
 ### Frontend (Next.js)
 Navigate to `web/` directory first:
 - `npm run dev` - Start development server on port 3000
@@ -51,6 +55,8 @@ Key directories:
   - `repository/` - Repository interfaces
   - `rdb/` - Database implementations
 - `api/internal/openapi/` - Generated OpenAPI handlers
+- `api/test/integration/` - Integration test files
+- `api/testdata/` - Test data SQL files
 
 ### Frontend Structure
 Next.js 15 application with TypeScript and Tailwind CSS:
@@ -99,9 +105,11 @@ usecase, err := container.CreatePostUsecase()
 - Test files: `*_test.go` for unit tests, `*_integration_test.go` for integration tests
 
 ## Testing Strategy
-- Integration tests use Docker MySQL environment
-- Unit tests mock repository interfaces
+- **Integration tests**: Located in `api/test/integration/`, use Docker MySQL environment
+- **Unit tests**: Mock repository interfaces, use `*_test.go` naming
+- **Test data**: SQL files in `api/testdata/` for consistent test setup
 - Test files include comprehensive error scenarios
+- Integration test workflow: Start MySQL container → Load test data → Execute HTTP tests
 
 ## CLAUDE.md Maintenance Rules
 
