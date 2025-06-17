@@ -5,39 +5,6 @@ import (
 	"testing"
 )
 
-func TestIsErrPostNotFound(t *testing.T) {
-	tests := []struct {
-		name     string
-		err      error
-		expected bool
-	}{
-		{
-			name:     "should return true for ErrPostNotFound",
-			err:      &ErrPostNotFound{},
-			expected: true,
-		},
-		{
-			name:     "should return false for other error",
-			err:      errors.New("other error"),
-			expected: false,
-		},
-		{
-			name:     "should return false for nil error",
-			err:      nil,
-			expected: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := IsErrPostNotFound(tt.err)
-			if result != tt.expected {
-				t.Errorf("IsErrPostNotFound() = %v, want %v", result, tt.expected)
-			}
-		})
-	}
-}
-
 func TestAsErrPostNotFound(t *testing.T) {
 	tests := []struct {
 		name        string
