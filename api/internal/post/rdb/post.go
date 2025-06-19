@@ -31,7 +31,7 @@ func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, 
 		return nil, err
 	}
 
-	p, err := post.Reconstruct(postID, title, body, createdAt)
+	p, err := post.Reconstruct(postID, title, body, createdAt, publishedAt)
 	if err != nil {
 		return nil, err
 	}

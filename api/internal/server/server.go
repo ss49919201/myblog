@@ -49,7 +49,23 @@ func (s *Server) PostsRead(c *gin.Context, id string) {
 }
 
 func (s *Server) PostsList(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+	db, err := s.container.DB()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database connection failed"})
+		return
+	}
+
+	posts, err := rdb.FindAllPosts(c.Request.Context(), db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	response := gin.H{
+		"items": posts,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (s *Server) PostsCreate(c *gin.Context) {

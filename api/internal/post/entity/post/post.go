@@ -113,6 +113,7 @@ func Reconstruct(
 	title string,
 	body string,
 	createdAt time.Time,
+	publishsedAt time.Time,
 ) (*Post, error) {
 	if err := ValidateForConstruct(title, body); err != nil {
 		return nil, err
@@ -123,7 +124,7 @@ func Reconstruct(
 		Title:       title,
 		Body:        body,
 		CreatedAt:   createdAt,
-		PublishedAt: time.Now(),
+		PublishedAt: publishsedAt,
 	}, nil
 }
 

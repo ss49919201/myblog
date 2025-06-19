@@ -33,7 +33,6 @@ func (e *exprEqID) ValueAsAny() any {
 	return e.value
 }
 
-
 func ExprEqID(v string) ExprEq[string] {
 	return &exprEqID{value: v}
 }
@@ -53,7 +52,6 @@ func (e *exprEqPublishedAtMillSec) Value() int64 {
 func (e *exprEqPublishedAtMillSec) ValueAsAny() any {
 	return e.value
 }
-
 
 func ExprEqPublishedAtMillSec(v int64) ExprEq[int64] {
 	return &exprEqPublishedAtMillSec{value: v}
@@ -82,7 +80,6 @@ type criteriaFindPosts struct {
 	andConditions []CriteriaFindPosts
 	orConditions  []CriteriaFindPosts
 }
-
 
 func NewCriteriaFindPosts() CriteriaFindPosts {
 	return &criteriaFindPosts{
@@ -121,7 +118,7 @@ func (c *criteriaFindPosts) Build() (string, []any) {
 
 func buildQuery(criteria *criteriaFindPosts) (string, []any) {
 	baseQuery := "SELECT id, title, body, created_at, published_at FROM posts"
-	
+
 	whereClause, args := buildWhereClause(criteria)
 	if whereClause == "" {
 		return baseQuery, []any{}
@@ -261,7 +258,7 @@ func FindPosts(ctx context.Context, db *sql.DB, criteria CriteriaFindPosts) ([]*
 
 	for rows.Next() {
 		var id, title, body string
-		var createdAt, publishedAt string
+		var createdAt, publishedAt time.Time
 
 		err := rows.Scan(&id, &title, &body, &createdAt, &publishedAt)
 		if err != nil {
@@ -274,7 +271,48 @@ func FindPosts(ctx context.Context, db *sql.DB, criteria CriteriaFindPosts) ([]*
 		}
 
 		// Note: This is simplified - in real implementation you'd parse the timestamps
-		p, err := post.Reconstruct(postID, title, body, time.Now())
+		p, err := post.Reconstruct(postID, title, body, createdAt, publishedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
+// FindAllPosts retrieves all posts ordered by created_at DESC
+func FindAllPosts(ctx context.Context, db *sql.DB) ([]*post.Post, error) {
+	query := "SELECT BIN_TO_UUID(id) as id, title, body, created_at, published_at FROM posts ORDER BY created_at DESC"
+
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	posts := make([]*post.Post, 0)
+
+	for rows.Next() {
+		var id, title, body string
+		var createdAt, publishedAt time.Time
+
+		err := rows.Scan(&id, &title, &body, &createdAt, &publishedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		postID, err := post.ParsePostID(id)
+		if err != nil {
+			return nil, err
+		}
+
+		p, err := post.Reconstruct(postID, title, body, createdAt, publishedAt)
 		if err != nil {
 			return nil, err
 		}

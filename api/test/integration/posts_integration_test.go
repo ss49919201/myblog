@@ -46,6 +46,30 @@ func TestPostsRead_Success(t *testing.T) {
 	assert.Contains(t, body, "2024-01-01T10:00:00Z")
 }
 
+func TestPostsList_Success(t *testing.T) {
+	db := setupDatabase(t)
+	defer db.Close()
+
+	loadTestData(t)
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	serverInstance := server.NewServer()
+	openapi.RegisterHandlers(router, serverInstance)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/posts", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	body := w.Body.String()
+	assert.Contains(t, body, "items")
+	assert.Contains(t, body, testPostID)
+	assert.Contains(t, body, "Test Post Title")
+}
+
 func setupDatabase(t *testing.T) *sql.DB {
 	t.Helper()
 
