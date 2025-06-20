@@ -36,11 +36,11 @@ func NewPostID() PostID {
 }
 
 type Post struct {
-	ID          PostID
-	Title       string
-	Body        string
-	CreatedAt   time.Time
-	PublishedAt time.Time
+	ID          PostID    `json:"id"`
+	Title       string    `json:"title"`
+	Body        string    `json:"body"`
+	CreatedAt   time.Time `json:"createdAt"`
+	PublishedAt time.Time `json:"publishdAt"`
 }
 
 func (p *Post) Update(title string, body string) error {
