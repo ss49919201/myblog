@@ -39,7 +39,8 @@ func NewPostID() PostID {
 type PostEventType int
 
 const (
-	PostEventTypeUpdatePost PostEventType = iota + 1
+	PostEventTypeCreatePost PostEventType = iota + 1
+	PostEventTypeUpdatePost
 )
 
 type PostEvent struct {
@@ -118,13 +119,21 @@ func Construct(
 		return nil, err
 	}
 
-	return &Post{
+	post := &Post{
 		ID:          NewPostID(),
 		Title:       title,
 		Body:        body,
 		CreatedAt:   time.Now(),
 		PublishedAt: time.Now(),
-	}, nil
+		Events:      []PostEvent{},
+	}
+
+	post.Events = append(post.Events, PostEvent{
+		ID:   event.GenerateID(),
+		Type: PostEventTypeCreatePost,
+	})
+
+	return post, nil
 }
 
 func Reconstruct(
