@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Link from 'next/link';
@@ -6,8 +6,18 @@ import Link from 'next/link';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'MyBlog',
-  description: 'A simple blog application',
+  title: {
+    default: 'MyBlog',
+    template: '%s | MyBlog',
+  },
+  description: 'シンプルなブログアプリケーション',
+  keywords: ['ブログ', '投稿', 'Next.js', 'TypeScript'],
+  authors: [{ name: 'MyBlog Team' }],
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

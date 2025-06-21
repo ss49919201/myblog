@@ -1,25 +1,12 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { serverApi } from '@/lib/api';
 import { Post } from '@/types/api';
+import { Metadata } from 'next';
 
-function LoadingState() {
-  return (
-    <div className="flex justify-center items-center py-8">
-      <div className="text-gray-600">読み込み中...</div>
-    </div>
-  );
-}
-
-function ErrorState({ error }: { error: string }) {
-  return (
-    <div className="bg-red-50 border border-red-200 rounded-md p-4">
-      <div className="text-red-700">エラー: {error}</div>
-    </div>
-  );
-}
+export const metadata: Metadata = {
+  title: 'ブログ投稿一覧',
+  description: 'すべての投稿を表示しています',
+};
 
 function EmptyState() {
   return (
@@ -39,7 +26,7 @@ function PostCard({ post }: { post: Post }) {
     : '下書き';
 
   return (
-    <div key={post.id} className="bg-white rounded-lg shadow-sm border p-6">
+    <div className="bg-white rounded-lg shadow-sm border p-6">
       <h3 className="text-lg font-medium text-gray-900">
         <Link 
           href={`/posts/${post.id}`}
@@ -58,31 +45,9 @@ function PostCard({ post }: { post: Post }) {
   );
 }
 
-export default function Home() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const postList = await api.getPosts();
-        setPosts(postList.items);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch posts');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-  }, []);
-
-  if (loading) {
-    return <LoadingState />;
-  }
-  if (error) {
-    return <ErrorState error={error} />;
-  }
+export default async function Home() {
+  const postList = await serverApi.getPosts();
+  const posts = postList.items;
 
   return (
     <div className="px-4 sm:px-0">

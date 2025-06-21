@@ -1,35 +1,29 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { notFound } from 'next/navigation';
+import { serverApi } from '@/lib/api';
 import { Post } from '@/types/api';
+import { Metadata } from 'next';
 
-function LoadingState() {
-  return (
-    <div className="flex justify-center items-center py-8">
-      <div className="text-gray-600">読み込み中...</div>
-    </div>
-  );
+interface Props {
+  params: Promise<{ id: string }>;
 }
 
-function ErrorState({ error }: { error: string }) {
-  return (
-    <div className="px-4 sm:px-0">
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <div className="text-red-700">エラー: {error}</div>
-      </div>
-      <div className="mt-4">
-        <Link 
-          href="/"
-          className="text-blue-600 hover:text-blue-500"
-        >
-          ← 投稿一覧に戻る
-        </Link>
-      </div>
-    </div>
-  );
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const post = await serverApi.getPost(id);
+    return {
+      title: post.title,
+      description: post.body.length > 150 
+        ? `${post.body.substring(0, 150)}...` 
+        : post.body,
+    };
+  } catch {
+    return {
+      title: '投稿が見つかりません',
+      description: '指定された投稿は存在しません',
+    };
+  }
 }
 
 function BackLink() {
@@ -69,34 +63,17 @@ function PostContent({ post }: { post: Post }) {
   );
 }
 
-export default function PostDetail() {
-  const params = useParams();
-  const id = params.id as string;
-  const [post, setPost] = useState<Post | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const postData = await api.getPost(id);
-        setPost(postData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch post');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) {
-      fetchPost();
+export default async function PostDetail({ params }: Props) {
+  const { id } = await params;
+  let post: Post;
+  
+  try {
+    post = await serverApi.getPost(id);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NOT_FOUND') {
+      notFound();
     }
-  }, [id]);
-
-  if (loading) {
-    return <LoadingState />;
-  }
-  if (error || !post) {
-    return <ErrorState error={error || '投稿が見つかりません'} />;
+    throw error; // Re-throw other errors to be handled by error.tsx
   }
 
   return (
