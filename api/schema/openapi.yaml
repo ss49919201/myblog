@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: MyBlog
   version: 0.0.0
@@ -29,8 +29,14 @@ paths:
         - Post
     post:
       operationId: Posts_create
-      description: Create a Post
-      parameters: []
+      description: Create a Post with Enhanced Validation
+      parameters:
+        - name: X-User-Role
+          in: header
+          required: true
+          description: 'FIXME: use database'
+          schema:
+            $ref: '#/components/schemas/UserRole'
       responses:
         '200':
           description: The request has succeeded.
@@ -43,7 +49,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                anyOf:
+                  - $ref: '#/components/schemas/ValidationErrors'
+                  - $ref: '#/components/schemas/Error'
       tags:
         - API
         - Post
@@ -52,7 +60,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Post'
+              $ref: '#/components/schemas/CreatePostRequest'
   /api/posts/{id}:
     get:
       operationId: Posts_read
@@ -169,6 +177,53 @@ components:
           type: string
         analysis:
           type: string
+    CreatePostRequest:
+      type: object
+      required:
+        - title
+        - body
+        - status
+        - scheduledAt
+        - category
+        - tags
+        - featuredImageURL
+        - metaDescription
+        - slug
+        - snsAutoPost
+        - externalNotification
+        - emergencyFlag
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        status:
+          $ref: '#/components/schemas/PublicationStatus'
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        featuredImageURL:
+          type: string
+          nullable: true
+        metaDescription:
+          type: string
+          nullable: true
+        slug:
+          type: string
+          nullable: true
+        snsAutoPost:
+          type: boolean
+        externalNotification:
+          type: boolean
+        emergencyFlag:
+          type: boolean
     Error:
       type: object
       required:
@@ -186,7 +241,18 @@ components:
         - id
         - title
         - body
-        - publishdAt
+        - status
+        - scheduledAt
+        - category
+        - tags
+        - featuredImageURL
+        - metaDescription
+        - slug
+        - snsAutoPost
+        - externalNotification
+        - emergencyFlag
+        - createdAt
+        - publishedAt
       properties:
         id:
           type: string
@@ -194,11 +260,40 @@ components:
           type: string
         body:
           type: string
-        publishdAt:
-          anyOf:
-            - type: string
-              format: date-time
-            - type: 'null'
+        status:
+          $ref: '#/components/schemas/PublicationStatus'
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        featuredImageURL:
+          type: string
+          nullable: true
+        metaDescription:
+          type: string
+          nullable: true
+        slug:
+          type: string
+          nullable: true
+        snsAutoPost:
+          type: boolean
+        externalNotification:
+          type: boolean
+        emergencyFlag:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
     PostList:
       type: object
       required:
@@ -217,9 +312,87 @@ components:
           type: string
         body:
           type: string
-        publishdAt:
-          anyOf:
-            - type: string
-              format: date-time
-            - type: 'null'
+        status:
+          $ref: '#/components/schemas/PublicationStatus'
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        featuredImageURL:
+          type: string
+          nullable: true
+        metaDescription:
+          type: string
+          nullable: true
+        slug:
+          type: string
+          nullable: true
+        snsAutoPost:
+          type: boolean
+        externalNotification:
+          type: boolean
+        emergencyFlag:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
       description: ''
+    PublicationStatus:
+      type: string
+      enum:
+        - draft
+        - scheduled
+        - published
+    UserContext:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+    UserRole:
+      type: string
+      enum:
+        - general
+        - editor
+        - admin
+    ValidationError:
+      type: object
+      required:
+        - code
+        - message
+        - field
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        field:
+          type: string
+    ValidationErrors:
+      type: object
+      required:
+        - code
+        - message
+        - errors
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'

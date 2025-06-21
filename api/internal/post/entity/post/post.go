@@ -49,11 +49,21 @@ type PostEvent struct {
 }
 
 type Post struct {
-	ID          PostID    `json:"id"`
-	Title       string    `json:"title"`
-	Body        string    `json:"body"`
-	CreatedAt   time.Time `json:"createdAt"`
-	PublishedAt time.Time `json:"publishdAt"`
+	ID                   PostID     `json:"id"`
+	Title                string     `json:"title"`
+	Body                 string     `json:"body"`
+	Status               string     `json:"status"`
+	ScheduledAt          *time.Time `json:"scheduledAt"`
+	Category             string     `json:"category"`
+	Tags                 []string   `json:"tags"`
+	FeaturedImageURL     *string    `json:"featuredImageURL"`
+	MetaDescription      *string    `json:"metaDescription"`
+	Slug                 *string    `json:"slug"`
+	SNSAutoPost          bool       `json:"snsAutoPost"`
+	ExternalNotification bool       `json:"externalNotification"`
+	EmergencyFlag        bool       `json:"emergencyFlag"`
+	CreatedAt            time.Time  `json:"createdAt"`
+	PublishedAt          *time.Time `json:"publishedAt"`
 
 	Events []PostEvent
 }
@@ -79,9 +89,9 @@ func (p *Post) Update(title string, body string) error {
 }
 
 func ValidateTitle(title string) error {
-	validTitle := len(title) > 1 && len(title) <= 50
+	validTitle := len(title) > 1 && len(title) <= 100
 	if !validTitle {
-		return errors.New("title must be between 1 and 50 characters")
+		return errors.New("title must be between 1 and 100 characters")
 	}
 
 	return nil
@@ -119,13 +129,67 @@ func Construct(
 		return nil, err
 	}
 
+	now := time.Now()
 	post := &Post{
 		ID:          NewPostID(),
 		Title:       title,
 		Body:        body,
-		CreatedAt:   time.Now(),
-		PublishedAt: time.Now(),
+		Status:      "draft",
+		CreatedAt:   now,
+		PublishedAt: &now,
 		Events:      []PostEvent{},
+	}
+
+	post.Events = append(post.Events, PostEvent{
+		ID:   event.GenerateID(),
+		Type: PostEventTypeCreatePost,
+	})
+
+	return post, nil
+}
+
+func ConstructEnhanced(
+	title,
+	body,
+	status string,
+	scheduledAt *time.Time,
+	category string,
+	tags []string,
+	featuredImageURL *string,
+	metaDescription *string,
+	slug *string,
+	snsAutoPost,
+	externalNotification,
+	emergencyFlag bool,
+) (*Post, error) {
+	if err := ValidateForConstruct(title, body); err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	post := &Post{
+		ID:                   NewPostID(),
+		Title:                title,
+		Body:                 body,
+		Status:               status,
+		ScheduledAt:          scheduledAt,
+		Category:             category,
+		Tags:                 tags,
+		FeaturedImageURL:     featuredImageURL,
+		MetaDescription:      metaDescription,
+		Slug:                 slug,
+		SNSAutoPost:          snsAutoPost,
+		ExternalNotification: externalNotification,
+		EmergencyFlag:        emergencyFlag,
+		CreatedAt:            now,
+		Events:               []PostEvent{},
+	}
+
+	// PublishedAtの設定
+	if status == "published" {
+		post.PublishedAt = &now
+	} else if status == "scheduled" && scheduledAt != nil {
+		post.PublishedAt = scheduledAt
 	}
 
 	post.Events = append(post.Events, PostEvent{
@@ -140,19 +204,39 @@ func Reconstruct(
 	id PostID,
 	title string,
 	body string,
+	status string,
+	scheduledAt *time.Time,
+	category string,
+	tags []string,
+	featuredImageURL *string,
+	metaDescription *string,
+	slug *string,
+	snsAutoPost bool,
+	externalNotification bool,
+	emergencyFlag bool,
 	createdAt time.Time,
-	publishsedAt time.Time,
+	publishedAt *time.Time,
 ) (*Post, error) {
 	if err := ValidateForConstruct(title, body); err != nil {
 		return nil, err
 	}
 
 	return &Post{
-		ID:          id,
-		Title:       title,
-		Body:        body,
-		CreatedAt:   createdAt,
-		PublishedAt: publishsedAt,
+		ID:                   id,
+		Title:                title,
+		Body:                 body,
+		Status:               status,
+		ScheduledAt:          scheduledAt,
+		Category:             category,
+		Tags:                 tags,
+		FeaturedImageURL:     featuredImageURL,
+		MetaDescription:      metaDescription,
+		Slug:                 slug,
+		SNSAutoPost:          snsAutoPost,
+		ExternalNotification: externalNotification,
+		EmergencyFlag:        emergencyFlag,
+		CreatedAt:            createdAt,
+		PublishedAt:          publishedAt,
 	}, nil
 }
 

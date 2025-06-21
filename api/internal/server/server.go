@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ss49919201/myblog/api/internal/openapi"
 	"github.com/ss49919201/myblog/api/internal/post/di"
 	"github.com/ss49919201/myblog/api/internal/post/entity/post"
 	"github.com/ss49919201/myblog/api/internal/post/rdb"
@@ -68,33 +69,95 @@ func (s *Server) PostsList(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (s *Server) PostsCreate(c *gin.Context) {
+func (s *Server) PostsCreate(c *gin.Context, params openapi.PostsCreateParams) {
 	uc, err := s.container.CreatePostUsecase()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get usecase"})
+		c.JSON(http.StatusInternalServerError, openapi.Error{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to get usecase",
+		})
 		return
 	}
 
-	var input struct {
-		Title string `json:"title"`
-		Body  string `json:"body"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+	var request openapi.CreatePostRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, openapi.Error{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+		})
 		return
 	}
 
-	output, err := uc.Execute(c.Request.Context(), usecase.CreatePostInput{
-		Title: input.Title,
-		Body:  input.Body,
-	})
+	// OpenAPI型からUsecase型への変換
+	var tags []string
+	if request.Tags != nil {
+		tags = request.Tags
+	}
+
+	input := usecase.CreatePostInput{
+		Title:                request.Title,
+		Body:                 request.Body,
+		Status:               usecase.PublicationStatus(request.Status),
+		ScheduledAt:          request.ScheduledAt,
+		Category:             request.Category,
+		Tags:                 tags,
+		FeaturedImageURL:     request.FeaturedImageURL,
+		MetaDescription:      request.MetaDescription,
+		Slug:                 request.Slug,
+		SNSAutoPost:          request.SnsAutoPost,
+		ExternalNotification: request.ExternalNotification,
+		EmergencyFlag:        request.EmergencyFlag,
+	}
+
+	userCtx := usecase.UserContext{
+		Role: usecase.UserRole(params.XUserRole),
+	}
+
+	output, err := uc.Execute(c.Request.Context(), input, userCtx)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create post"})
+		// バリデーションエラーの場合
+		if validationErr, ok := post.AsErrValidation(err); ok {
+			c.JSON(http.StatusBadRequest, openapi.ValidationErrors{
+				Code:    http.StatusBadRequest,
+				Message: "Validation failed",
+				Errors: []openapi.ValidationError{
+					{
+						Code:    http.StatusBadRequest,
+						Field:   validationErr.Field,
+						Message: validationErr.Message,
+					},
+				},
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, openapi.Error{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to create post",
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, output.Post)
+	// Post エンティティからOpenAPI型への変換
+	response := openapi.Post{
+		Id:                   output.Post.ID.String(),
+		Title:                output.Post.Title,
+		Body:                 output.Post.Body,
+		Status:               openapi.PublicationStatus(output.Post.Status),
+		ScheduledAt:          output.Post.ScheduledAt,
+		Category:             output.Post.Category,
+		Tags:                 output.Post.Tags,
+		FeaturedImageURL:     output.Post.FeaturedImageURL,
+		MetaDescription:      output.Post.MetaDescription,
+		Slug:                 output.Post.Slug,
+		SnsAutoPost:          output.Post.SNSAutoPost,
+		ExternalNotification: output.Post.ExternalNotification,
+		EmergencyFlag:        output.Post.EmergencyFlag,
+		CreatedAt:            output.Post.CreatedAt,
+		PublishedAt:          output.Post.PublishedAt,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (s *Server) PostsDelete(c *gin.Context, id string) {
