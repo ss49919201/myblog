@@ -5,6 +5,59 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Post } from '@/types/api';
 
+function LoadingState() {
+  return (
+    <div className="flex justify-center items-center py-8">
+      <div className="text-gray-600">読み込み中...</div>
+    </div>
+  );
+}
+
+function ErrorState({ error }: { error: string }) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-md p-4">
+      <div className="text-red-700">エラー: {error}</div>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="text-center py-8">
+      <div className="text-gray-500">投稿がありません</div>
+    </div>
+  );
+}
+
+function PostCard({ post }: { post: Post }) {
+  const truncatedBody = post.body.length > 150 
+    ? `${post.body.substring(0, 150)}...` 
+    : post.body;
+  
+  const publishDate = post.publishdAt 
+    ? `公開日: ${new Date(post.publishdAt).toLocaleDateString('ja-JP')}`
+    : '下書き';
+
+  return (
+    <div key={post.id} className="bg-white rounded-lg shadow-sm border p-6">
+      <h3 className="text-lg font-medium text-gray-900">
+        <Link 
+          href={`/posts/${post.id}`}
+          className="hover:text-blue-600"
+        >
+          {post.title}
+        </Link>
+      </h3>
+      <p className="mt-2 text-gray-600 line-clamp-3">
+        {truncatedBody}
+      </p>
+      <div className="mt-4 text-sm text-gray-500">
+        {publishDate}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,24 +74,14 @@ export default function Home() {
         setLoading(false);
       }
     };
-
     fetchPosts();
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="text-gray-600">読み込み中...</div>
-      </div>
-    );
+    return <LoadingState />;
   }
-
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <div className="text-red-700">エラー: {error}</div>
-      </div>
-    );
+    return <ErrorState error={error} />;
   }
 
   return (
@@ -53,42 +96,13 @@ export default function Home() {
       </div>
 
       {posts.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-gray-500">投稿がありません</div>
-        </div>
+        <EmptyState />
       ) : (
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <div className="space-y-4">
-                {posts.map((post) => (
-                  <div key={post.id} className="bg-white rounded-lg shadow-sm border p-6">
-                    <div>
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900">
-                          <Link 
-                            href={`/posts/${post.id}`}
-                            className="hover:text-blue-600"
-                          >
-                            {post.title}
-                          </Link>
-                        </h3>
-                        <p className="mt-2 text-gray-600 line-clamp-3">
-                          {post.body.length > 150 
-                            ? `${post.body.substring(0, 150)}...` 
-                            : post.body
-                          }
-                        </p>
-                        <div className="mt-4 text-sm text-gray-500">
-                          {post.publishdAt 
-                            ? `公開日: ${new Date(post.publishdAt).toLocaleDateString('ja-JP')}`
-                            : '下書き'
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                {posts.map((post) => <PostCard key={post.id} post={post} />)}
               </div>
             </div>
           </div>
