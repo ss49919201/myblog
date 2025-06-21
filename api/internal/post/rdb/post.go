@@ -10,10 +10,25 @@ import (
 	"github.com/ss49919201/myblog/api/internal/post/repository"
 )
 
-func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, error) {
+type PostRepositoryImpl struct {
+	db *sql.DB
+}
+
+func NewPostRepository(db *sql.DB) repository.PostRepository {
+	return &PostRepositoryImpl{db: db}
+}
+
+func (r *PostRepositoryImpl) Create(ctx context.Context, p *post.Post) error {
+	query := `INSERT INTO posts (id, title, body, created_at, published_at) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`
+
+	_, err := r.db.ExecContext(ctx, query, p.ID.String(), p.Title, p.Body, p.CreatedAt, p.PublishedAt)
+	return err
+}
+
+func (r *PostRepositoryImpl) FindByID(ctx context.Context, id post.PostID) (*post.Post, error) {
 	query := `SELECT BIN_TO_UUID(id), title, body, created_at, published_at FROM posts WHERE id = UUID_TO_BIN(?)`
 
-	row := db.QueryRowContext(ctx, query, id.String())
+	row := r.db.QueryRowContext(ctx, query, id.String())
 
 	var idStr, title, body string
 	var createdAt, publishedAt time.Time
@@ -37,25 +52,6 @@ func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, 
 	}
 
 	return p, nil
-}
-
-func SavePost(ctx context.Context, db *sql.DB, p *post.Post) error {
-	query := `INSERT INTO posts (id, title, body, created_at, published_at) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`
-
-	_, err := db.ExecContext(ctx, query, p.ID.String(), p.Title, p.Body, p.CreatedAt, p.PublishedAt)
-	return err
-}
-
-type PostRepositoryImpl struct {
-	db *sql.DB
-}
-
-func NewPostRepository(db *sql.DB) repository.PostRepository {
-	return &PostRepositoryImpl{db: db}
-}
-
-func (r *PostRepositoryImpl) Save(ctx context.Context, p *post.Post) error {
-	return SavePost(ctx, r.db, p)
 }
 
 func (r *PostRepositoryImpl) Update(ctx context.Context, p *post.Post) error {

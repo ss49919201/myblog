@@ -31,16 +31,18 @@ func (u *UpdatePostUsecase) Execute(ctx context.Context, input UpdatePostInput) 
 		return nil, err
 	}
 
-	p, err := post.Construct(input.Title, input.Body)
+	existingPost, err := u.repo.FindByID(ctx, postID)
 	if err != nil {
 		return nil, err
 	}
-	
-	p.ID = postID
 
-	if err := u.repo.Update(ctx, p); err != nil {
+	if err := existingPost.Update(input.Title, input.Body); err != nil {
 		return nil, err
 	}
 
-	return &UpdatePostOutput{Post: p}, nil
+	if err := u.repo.Update(ctx, existingPost); err != nil {
+		return nil, err
+	}
+
+	return &UpdatePostOutput{Post: existingPost}, nil
 }

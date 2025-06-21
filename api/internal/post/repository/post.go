@@ -7,7 +7,8 @@ import (
 )
 
 type PostRepository interface {
-	Save(ctx context.Context, p *post.Post) error
+	Create(ctx context.Context, p *post.Post) error
+	FindByID(ctx context.Context, id post.PostID) (*post.Post, error)
 	Update(ctx context.Context, p *post.Post) error
 	Delete(ctx context.Context, id post.PostID) error
 }

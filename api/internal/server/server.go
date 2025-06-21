@@ -23,9 +23,9 @@ func NewServer() *Server {
 }
 
 func (s *Server) PostsRead(c *gin.Context, id string) {
-	db, err := s.container.DB()
+	repo, err := s.container.PostRepository()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "database connection failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get repository"})
 		return
 	}
 
@@ -35,7 +35,7 @@ func (s *Server) PostsRead(c *gin.Context, id string) {
 		return
 	}
 
-	foundPost, err := rdb.FindPostByID(c.Request.Context(), db, postID)
+	foundPost, err := repo.FindByID(c, postID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) || err.Error() == "post not found" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})

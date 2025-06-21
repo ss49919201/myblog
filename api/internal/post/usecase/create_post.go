@@ -30,7 +30,7 @@ func (u *CreatePostUsecase) Execute(ctx context.Context, input CreatePostInput) 
 		return nil, err
 	}
 
-	if err := u.repo.Save(ctx, p); err != nil {
+	if err := u.repo.Create(ctx, p); err != nil {
 		return nil, err
 	}
 
