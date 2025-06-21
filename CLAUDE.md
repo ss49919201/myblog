@@ -107,6 +107,12 @@ usecase, err := container.CreatePostUsecase()
 2. Run `npm run tsp-compile` to generate OpenAPI schema
 3. Run `make gen-oapi` to generate Go handlers
 
+### Git Workflow
+When the user instructs "commit" during a Claude Code session:
+1. Automatically run `git add` on all modified files relevant to the current task
+2. Create a commit with a descriptive message following the project's commit style
+3. Include the standard Claude Code footer in commit messages
+
 ## File Naming Conventions
 - Go files: snake_case
 - Entity constructors: `Construct()` for new, `Reconstruct()` for DB restoration
