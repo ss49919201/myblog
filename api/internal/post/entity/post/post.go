@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ss49919201/myblog/api/internal/post/entity/event"
 	"github.com/ss49919201/myblog/api/internal/post/id"
 )
 
@@ -35,12 +36,25 @@ func NewPostID() PostID {
 	return PostID(id.GenerateUUID())
 }
 
+type PostEventType int
+
+const (
+	PostEventTypeUpdatePost PostEventType = iota + 1
+)
+
+type PostEvent struct {
+	ID   event.ID
+	Type PostEventType
+}
+
 type Post struct {
 	ID          PostID    `json:"id"`
 	Title       string    `json:"title"`
 	Body        string    `json:"body"`
 	CreatedAt   time.Time `json:"createdAt"`
 	PublishedAt time.Time `json:"publishdAt"`
+
+	Events []PostEvent
 }
 
 func (p *Post) Update(title string, body string) error {
@@ -54,6 +68,11 @@ func (p *Post) Update(title string, body string) error {
 
 	p.Title = title
 	p.Body = body
+
+	p.Events = append(p.Events, PostEvent{
+		ID:   event.GenerateID(),
+		Type: PostEventTypeUpdatePost,
+	})
 
 	return nil
 }
