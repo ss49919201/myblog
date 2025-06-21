@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ss49919201/myblog/api/internal/post/entity/post"
+	"github.com/ss49919201/myblog/api/internal/post/event"
 	"github.com/ss49919201/myblog/api/internal/post/repository"
 )
 
@@ -17,11 +18,12 @@ type CreatePostOutput struct {
 }
 
 type CreatePostUsecase struct {
-	repo repository.PostRepository
+	repo       repository.PostRepository
+	dispatcher event.EventDispatcher
 }
 
-func NewCreatePostUsecase(repo repository.PostRepository) *CreatePostUsecase {
-	return &CreatePostUsecase{repo: repo}
+func NewCreatePostUsecase(repo repository.PostRepository, dispatcher event.EventDispatcher) *CreatePostUsecase {
+	return &CreatePostUsecase{repo: repo, dispatcher: dispatcher}
 }
 
 func (u *CreatePostUsecase) Execute(ctx context.Context, input CreatePostInput) (*CreatePostOutput, error) {
@@ -32,6 +34,11 @@ func (u *CreatePostUsecase) Execute(ctx context.Context, input CreatePostInput) 
 
 	if err := u.repo.Create(ctx, p); err != nil {
 		return nil, err
+	}
+
+	if err := u.dispatcher.DispatchEvents(ctx, p.Events); err != nil {
+		// イベント配信失敗はログに記録するが、処理は続行
+		// TODO: ログ出力を追加
 	}
 
 	return &CreatePostOutput{Post: p}, nil
