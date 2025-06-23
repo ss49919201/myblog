@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/ss49919201/myblog/api/internal/post/event"
 	"github.com/ss49919201/myblog/api/internal/post/rdb"
 	"github.com/ss49919201/myblog/api/internal/post/repository"
 	"github.com/ss49919201/myblog/api/internal/post/usecase"
@@ -18,6 +19,7 @@ var containerOnceValue = sync.OnceValue(func() *Container {
 type Container struct {
 	dbOnce                 func() (*sql.DB, error)
 	postRepoOnce           func() (repository.PostRepository, error)
+	eventDispatcherOnce    func() (event.EventDispatcher, error)
 	createPostUsecaseOnce  func() (*usecase.CreatePostUsecase, error)
 	updatePostUsecaseOnce  func() (*usecase.UpdatePostUsecase, error)
 	deletePostUsecaseOnce  func() (*usecase.DeletePostUsecase, error)
@@ -53,12 +55,20 @@ func (c *Container) initOnceValues() {
 		return rdb.NewPostRepository(db), nil
 	})
 
+	c.eventDispatcherOnce = sync.OnceValues(func() (event.EventDispatcher, error) {
+		return event.NewNoopEventDispatcher(), nil
+	})
+
 	c.createPostUsecaseOnce = sync.OnceValues(func() (*usecase.CreatePostUsecase, error) {
 		repo, err := c.PostRepository()
 		if err != nil {
 			return nil, err
 		}
-		return usecase.NewCreatePostUsecase(repo), nil
+		dispatcher, err := c.EventDispatcher()
+		if err != nil {
+			return nil, err
+		}
+		return usecase.NewCreatePostUsecase(repo, dispatcher), nil
 	})
 
 	c.updatePostUsecaseOnce = sync.OnceValues(func() (*usecase.UpdatePostUsecase, error) {
@@ -66,7 +76,11 @@ func (c *Container) initOnceValues() {
 		if err != nil {
 			return nil, err
 		}
-		return usecase.NewUpdatePostUsecase(repo), nil
+		dispatcher, err := c.EventDispatcher()
+		if err != nil {
+			return nil, err
+		}
+		return usecase.NewUpdatePostUsecase(repo, dispatcher), nil
 	})
 
 	c.deletePostUsecaseOnce = sync.OnceValues(func() (*usecase.DeletePostUsecase, error) {
@@ -88,6 +102,10 @@ func (c *Container) DB() (*sql.DB, error) {
 
 func (c *Container) PostRepository() (repository.PostRepository, error) {
 	return c.postRepoOnce()
+}
+
+func (c *Container) EventDispatcher() (event.EventDispatcher, error) {
+	return c.eventDispatcherOnce()
 }
 
 func (c *Container) CreatePostUsecase() (*usecase.CreatePostUsecase, error) {

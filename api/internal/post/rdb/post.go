@@ -3,22 +3,65 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/ss49919201/myblog/api/internal/post/entity/post"
 	"github.com/ss49919201/myblog/api/internal/post/repository"
 )
 
-func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, error) {
-	query := `SELECT BIN_TO_UUID(id), title, body, created_at, published_at FROM posts WHERE id = UUID_TO_BIN(?)`
+type PostRepositoryImpl struct {
+	db *sql.DB
+}
 
-	row := db.QueryRowContext(ctx, query, id.String())
+func NewPostRepository(db *sql.DB) repository.PostRepository {
+	return &PostRepositoryImpl{db: db}
+}
 
-	var idStr, title, body string
-	var createdAt, publishedAt time.Time
+func (r *PostRepositoryImpl) Create(ctx context.Context, p *post.Post) error {
+	query := `INSERT INTO posts (id, title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	err := row.Scan(&idStr, &title, &body, &createdAt, &publishedAt)
+	// tagsをJSON文字列に変換
+	var tagsJSON *string
+	if len(p.Tags) > 0 {
+		tagsStr := `["` + strings.Join(p.Tags, `","`) + `"]`
+		tagsJSON = &tagsStr
+	}
+
+	_, err := r.db.ExecContext(ctx, query, 
+		p.ID.String(), 
+		p.Title, 
+		p.Body, 
+		p.Status, 
+		p.ScheduledAt, 
+		p.Category, 
+		tagsJSON, 
+		p.FeaturedImageURL, 
+		p.MetaDescription, 
+		p.Slug, 
+		p.SNSAutoPost, 
+		p.ExternalNotification, 
+		p.EmergencyFlag, 
+		p.CreatedAt, 
+		p.PublishedAt,
+	)
+	return err
+}
+
+func (r *PostRepositoryImpl) FindByID(ctx context.Context, id post.PostID) (*post.Post, error) {
+	query := `SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE id = UUID_TO_BIN(?)`
+
+	row := r.db.QueryRowContext(ctx, query, id.String())
+
+	var idStr, title, body, status, category string
+	var scheduledAt, publishedAt *time.Time
+	var tagsJSON, featuredImageURL, metaDescription, slug *string
+	var snsAutoPost, externalNotification, emergencyFlag bool
+	var createdAt time.Time
+
+	err := row.Scan(&idStr, &title, &body, &status, &scheduledAt, &category, &tagsJSON, &featuredImageURL, &metaDescription, &slug, &snsAutoPost, &externalNotification, &emergencyFlag, &createdAt, &publishedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("post not found")
@@ -31,7 +74,15 @@ func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, 
 		return nil, err
 	}
 
-	p, err := post.Reconstruct(postID, title, body, createdAt, publishedAt)
+	// tagsをパース
+	var tags []string
+	if tagsJSON != nil {
+		if err := json.Unmarshal([]byte(*tagsJSON), &tags); err != nil {
+			tags = []string{}
+		}
+	}
+
+	p, err := post.Reconstruct(postID, title, body, status, scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -39,29 +90,32 @@ func FindPostByID(ctx context.Context, db *sql.DB, id post.PostID) (*post.Post, 
 	return p, nil
 }
 
-func SavePost(ctx context.Context, db *sql.DB, p *post.Post) error {
-	query := `INSERT INTO posts (id, title, body, created_at, published_at) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?)`
-
-	_, err := db.ExecContext(ctx, query, p.ID.String(), p.Title, p.Body, p.CreatedAt, p.PublishedAt)
-	return err
-}
-
-type PostRepositoryImpl struct {
-	db *sql.DB
-}
-
-func NewPostRepository(db *sql.DB) repository.PostRepository {
-	return &PostRepositoryImpl{db: db}
-}
-
-func (r *PostRepositoryImpl) Save(ctx context.Context, p *post.Post) error {
-	return SavePost(ctx, r.db, p)
-}
-
 func (r *PostRepositoryImpl) Update(ctx context.Context, p *post.Post) error {
-	query := `UPDATE posts SET title = ?, body = ?, published_at = ? WHERE id = UUID_TO_BIN(?)`
+	query := `UPDATE posts SET title = ?, body = ?, status = ?, scheduled_at = ?, category = ?, tags = ?, featured_image_url = ?, meta_description = ?, slug = ?, sns_auto_post = ?, external_notification = ?, emergency_flag = ?, published_at = ? WHERE id = UUID_TO_BIN(?)`
 
-	result, err := r.db.ExecContext(ctx, query, p.Title, p.Body, p.PublishedAt, p.ID.String())
+	// tagsをJSON文字列に変換
+	var tagsJSON *string
+	if len(p.Tags) > 0 {
+		tagsStr := `["` + strings.Join(p.Tags, `","`) + `"]`
+		tagsJSON = &tagsStr
+	}
+
+	result, err := r.db.ExecContext(ctx, query, 
+		p.Title, 
+		p.Body, 
+		p.Status, 
+		p.ScheduledAt, 
+		p.Category, 
+		tagsJSON, 
+		p.FeaturedImageURL, 
+		p.MetaDescription, 
+		p.Slug, 
+		p.SNSAutoPost, 
+		p.ExternalNotification, 
+		p.EmergencyFlag, 
+		p.PublishedAt, 
+		p.ID.String(),
+	)
 	if err != nil {
 		return err
 	}
@@ -96,4 +150,22 @@ func (r *PostRepositoryImpl) Delete(ctx context.Context, id post.PostID) error {
 	}
 
 	return nil
+}
+
+func (r *PostRepositoryImpl) CountScheduledSameDayByCategory(ctx context.Context, category string, scheduledAt time.Time) (int, error) {
+	// 同じ日付の0時～23:59:59の範囲でカウント
+	startOfDay := time.Date(scheduledAt.Year(), scheduledAt.Month(), scheduledAt.Day(), 0, 0, 0, 0, scheduledAt.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour).Add(-1 * time.Nanosecond)
+
+	query := `SELECT COUNT(*) FROM posts WHERE category = ? AND status = 'scheduled' AND scheduled_at >= ? AND scheduled_at <= ?`
+
+	row := r.db.QueryRowContext(ctx, query, category, startOfDay, endOfDay)
+
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
