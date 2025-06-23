@@ -125,6 +125,32 @@ When the user instructs "commit" during a Claude Code session:
 - Test files include comprehensive error scenarios
 - Integration test workflow: Start MySQL container → Load test data → Execute HTTP tests
 
+### Test-Driven Development (TDD) Rules
+**MANDATORY: When implementing new features or functionality:**
+
+1. **Write Tests First**: Before implementing any new feature, usecase, or API endpoint, write comprehensive tests that define the expected behavior
+2. **Test Categories Required**:
+   - **Unit tests** for business logic validation (usecases, entities)
+   - **Integration tests** for API endpoints and database interactions
+   - **Error scenario tests** for all validation rules and edge cases
+3. **Test Implementation Order**:
+   - Create failing tests that specify the expected behavior
+   - Implement the minimum code to make tests pass
+   - Refactor while keeping tests green
+4. **Completion Criteria**: A feature is only considered complete when:
+   - All tests pass (unit and integration)
+   - Test coverage includes success and failure scenarios
+   - Build verification succeeds (`go build`, `npm run build`)
+5. **Test Naming**: Follow patterns `TestFeatureName_Scenario_ExpectedResult`
+   - Example: `TestCreatePost_WithValidData_ReturnsCreatedPost`
+   - Example: `TestCreatePost_InvalidTitle_ReturnsValidationError`
+
+### Test Execution Commands
+- `go test ./... -v` - Run all unit tests
+- `go test ./api/test/integration -v` - Run integration tests  
+- `go test -cover ./...` - Run tests with coverage report
+- MySQL container must be running for integration tests: `docker compose up -d mysql`
+
 ## CLAUDE.md Maintenance Rules
 
 When committing changes, Claude Code should evaluate whether CLAUDE.md needs updates in these scenarios:
