@@ -19,8 +19,8 @@
 
 @layer components {
   .retro-card {
-    @apply bg-retro-cream border-4 border-retro-dark shadow-retro;
-    transform: rotate(-1deg);
+    @apply bg-retro-cream border-2 sm:border-4 border-retro-dark shadow-retro-sm sm:shadow-retro;
+    transform: rotate(-0.5deg);
     transition: all 0.3s ease;
   }
   
@@ -29,29 +29,51 @@
     @apply shadow-retro;
   }
   
+  @screen sm {
+    .retro-card {
+      transform: rotate(-1deg);
+    }
+  }
+  
   .retro-button {
-    @apply bg-retro-orange text-retro-cream border-4 border-retro-dark font-bold px-6 py-3 shadow-retro;
-    transform: skew(-5deg);
+    @apply bg-retro-orange text-retro-cream border-2 sm:border-4 border-retro-dark font-bold px-3 py-2 sm:px-6 sm:py-3 shadow-retro-sm sm:shadow-retro text-sm sm:text-base;
+    transform: skew(-2deg);
     transition: all 0.2s ease;
   }
   
   .retro-button:hover {
     @apply bg-retro-yellow text-retro-dark;
-    transform: skew(0deg) translateY(-2px);
+    transform: skew(0deg) translateY(-1px);
+  }
+  
+  @screen sm {
+    .retro-button {
+      transform: skew(-5deg);
+    }
+    
+    .retro-button:hover {
+      transform: skew(0deg) translateY(-2px);
+    }
   }
   
   .retro-title {
     font-family: 'Orbitron', monospace;
     @apply text-retro-dark font-black;
-    text-shadow: 3px 3px 0px #FFD700, 6px 6px 0px #FF6B35;
+    text-shadow: 2px 2px 0px #FFD700, 4px 4px 0px #FF6B35;
+  }
+  
+  @screen sm {
+    .retro-title {
+      text-shadow: 3px 3px 0px #FFD700, 6px 6px 0px #FF6B35;
+    }
   }
   
   .retro-text {
-    @apply text-retro-dark font-mono leading-relaxed;
+    @apply text-retro-dark font-mono leading-relaxed text-sm sm:text-base;
   }
   
   .retro-nav {
-    @apply bg-retro-dark border-b-8 border-retro-orange;
+    @apply bg-retro-dark border-b-4 sm:border-b-8 border-retro-orange;
     background-image: 
       repeating-linear-gradient(
         90deg,
@@ -63,7 +85,7 @@
   }
   
   .retro-link {
-    @apply text-retro-orange hover:text-retro-yellow font-bold transition-colors duration-200;
+    @apply text-retro-orange hover:text-retro-yellow font-bold transition-colors duration-200 text-sm sm:text-base;
     text-decoration: none;
     position: relative;
   }
@@ -74,9 +96,28 @@
     bottom: -2px;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 2px;
     background: #FFD700;
     animation: blink 0.5s ease-in-out;
+  }
+  
+  @screen sm {
+    .retro-link:hover::after {
+      height: 3px;
+    }
+  }
+  
+  /* モバイル専用スタイル */
+  .retro-mobile-stack {
+    @apply flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4;
+  }
+  
+  .retro-mobile-text {
+    @apply text-xs xs:text-sm sm:text-base;
+  }
+  
+  .retro-mobile-card {
+    @apply p-3 sm:p-6 mx-2 sm:mx-0;
   }
 }
 
