@@ -15,18 +15,26 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="px-4 sm:px-0">
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <div className="text-red-700">
-          エラーが発生しました: {error.message}
+    <div className="px-4 sm:px-0 text-center py-12">
+      <div className="retro-card p-8 max-w-2xl mx-auto bg-retro-dark text-retro-cream">
+        <div className="text-6xl mb-6">💥</div>
+        <h1 className="retro-title text-3xl mb-6 text-retro-orange">
+          SYSTEM ERROR
+        </h1>
+        <div className="retro-text mb-6 bg-retro-orange bg-opacity-20 p-4 border-l-4 border-retro-orange">
+          <div className="font-bold mb-2">&gt; ERROR MESSAGE:</div>
+          <pre className="text-sm whitespace-pre-wrap">
+{error.message}
+          </pre>
         </div>
-      </div>
-      <div className="mt-4">
+        <div className="retro-text text-sm mb-6 opacity-70">
+          システムで予期しないエラーが発生しました
+        </div>
         <button
           onClick={reset}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          className="retro-button bg-retro-orange text-retro-dark"
         >
-          再試行
+          🔄 RETRY OPERATION
         </button>
       </div>
     </div>

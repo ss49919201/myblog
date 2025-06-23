@@ -1,3 +1,91 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+
+@layer base {
+  body {
+    font-family: 'Courier Prime', monospace;
+    background: linear-gradient(45deg, #FFF8DC 25%, transparent 25%), 
+                linear-gradient(-45deg, #FFF8DC 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #FFF8DC 75%), 
+                linear-gradient(-45deg, transparent 75%, #FFF8DC 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    background-color: #F5E6D3;
+  }
+}
+
+@layer components {
+  .retro-card {
+    @apply bg-retro-cream border-4 border-retro-dark shadow-retro;
+    transform: rotate(-1deg);
+    transition: all 0.3s ease;
+  }
+  
+  .retro-card:hover {
+    transform: rotate(0deg) scale(1.02);
+    @apply shadow-retro;
+  }
+  
+  .retro-button {
+    @apply bg-retro-orange text-retro-cream border-4 border-retro-dark font-bold px-6 py-3 shadow-retro;
+    transform: skew(-5deg);
+    transition: all 0.2s ease;
+  }
+  
+  .retro-button:hover {
+    @apply bg-retro-yellow text-retro-dark;
+    transform: skew(0deg) translateY(-2px);
+  }
+  
+  .retro-title {
+    font-family: 'Orbitron', monospace;
+    @apply text-retro-dark font-black;
+    text-shadow: 3px 3px 0px #FFD700, 6px 6px 0px #FF6B35;
+  }
+  
+  .retro-text {
+    @apply text-retro-dark font-mono leading-relaxed;
+  }
+  
+  .retro-nav {
+    @apply bg-retro-dark border-b-8 border-retro-orange;
+    background-image: 
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 215, 0, 0.1) 2px,
+        rgba(255, 215, 0, 0.1) 4px
+      );
+  }
+  
+  .retro-link {
+    @apply text-retro-orange hover:text-retro-yellow font-bold transition-colors duration-200;
+    text-decoration: none;
+    position: relative;
+  }
+  
+  .retro-link:hover::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #FFD700;
+    animation: blink 0.5s ease-in-out;
+  }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
