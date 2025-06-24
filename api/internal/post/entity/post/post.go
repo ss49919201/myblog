@@ -121,34 +121,8 @@ func ValidateForConstruct(
 	return nil
 }
 
+// Construct creates a new Post with all parameters explicitly specified
 func Construct(
-	title,
-	body string,
-) (*Post, error) {
-	if err := ValidateForConstruct(title, body); err != nil {
-		return nil, err
-	}
-
-	now := time.Now()
-	post := &Post{
-		ID:          NewPostID(),
-		Title:       title,
-		Body:        body,
-		Status:      "draft",
-		CreatedAt:   now,
-		PublishedAt: &now,
-		Events:      []PostEvent{},
-	}
-
-	post.Events = append(post.Events, PostEvent{
-		ID:   event.GenerateID(),
-		Type: PostEventTypeCreatePost,
-	})
-
-	return post, nil
-}
-
-func ConstructEnhanced(
 	title,
 	body,
 	status string,
@@ -185,7 +159,7 @@ func ConstructEnhanced(
 		Events:               []PostEvent{},
 	}
 
-	// PublishedAtの設定
+	// Set PublishedAt based on status
 	if status == "published" {
 		post.PublishedAt = &now
 	} else if status == "scheduled" && scheduledAt != nil {

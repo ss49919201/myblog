@@ -146,8 +146,8 @@ func (u *CreatePostUsecase) Execute(ctx context.Context, input CreatePostInput, 
 		return nil, post.NewValidationError("body", "posts with 10+ external links require approval workflow")
 	}
 
-	// 6. Post エンティティ作成（既存パターンに従う）
-	p, err := post.ConstructEnhanced(
+	// 6. Post エンティティ作成（全パラメータ指定）
+	p, err := post.Construct(
 		input.Title,
 		input.Body,
 		string(input.Status),
