@@ -82,7 +82,7 @@ func (r *PostRepositoryImpl) FindByID(ctx context.Context, id post.PostID) (*pos
 		}
 	}
 
-	p, err := post.Reconstruct(postID, title, body, status, scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
+	p, err := post.Reconstruct(postID, title, body, post.PublicationStatus(status), scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
 	if err != nil {
 		return nil, err
 	}

@@ -49,21 +49,21 @@ type PostEvent struct {
 }
 
 type Post struct {
-	ID                   PostID     `json:"id"`
-	Title                string     `json:"title"`
-	Body                 string     `json:"body"`
-	Status               string     `json:"status"`
-	ScheduledAt          *time.Time `json:"scheduledAt"`
-	Category             string     `json:"category"`
-	Tags                 []string   `json:"tags"`
-	FeaturedImageURL     *string    `json:"featuredImageURL"`
-	MetaDescription      *string    `json:"metaDescription"`
-	Slug                 *string    `json:"slug"`
-	SNSAutoPost          bool       `json:"snsAutoPost"`
-	ExternalNotification bool       `json:"externalNotification"`
-	EmergencyFlag        bool       `json:"emergencyFlag"`
-	CreatedAt            time.Time  `json:"createdAt"`
-	PublishedAt          *time.Time `json:"publishedAt"`
+	ID                   PostID            `json:"id"`
+	Title                string            `json:"title"`
+	Body                 string            `json:"body"`
+	Status               PublicationStatus `json:"status"`
+	ScheduledAt          *time.Time        `json:"scheduledAt"`
+	Category             string            `json:"category"`
+	Tags                 []string          `json:"tags"`
+	FeaturedImageURL     *string           `json:"featuredImageURL"`
+	MetaDescription      *string           `json:"metaDescription"`
+	Slug                 *string           `json:"slug"`
+	SNSAutoPost          bool              `json:"snsAutoPost"`
+	ExternalNotification bool              `json:"externalNotification"`
+	EmergencyFlag        bool              `json:"emergencyFlag"`
+	CreatedAt            time.Time         `json:"createdAt"`
+	PublishedAt          *time.Time        `json:"publishedAt"`
 
 	Events []PostEvent
 }
@@ -124,8 +124,8 @@ func ValidateForConstruct(
 // Construct creates a new Post with all parameters explicitly specified
 func Construct(
 	title,
-	body,
-	status string,
+	body string,
+	status PublicationStatus,
 	scheduledAt *time.Time,
 	category string,
 	tags []string,
@@ -160,9 +160,9 @@ func Construct(
 	}
 
 	// Set PublishedAt based on status
-	if status == "published" {
+	if status == StatusPublished {
 		post.PublishedAt = &now
-	} else if status == "scheduled" && scheduledAt != nil {
+	} else if status == StatusScheduled && scheduledAt != nil {
 		post.PublishedAt = scheduledAt
 	}
 
@@ -178,7 +178,7 @@ func Reconstruct(
 	id PostID,
 	title string,
 	body string,
-	status string,
+	status PublicationStatus,
 	scheduledAt *time.Time,
 	category string,
 	tags []string,

@@ -15,19 +15,19 @@ func TestCriteriaFindPosts_Build(t *testing.T) {
 		{
 			name:     "no criteria",
 			criteria: NewCriteriaFindPosts(),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts",
 			wantArgs: []any{},
 		},
 		{
 			name:     "single string equality",
 			criteria: NewCriteriaFindPosts().Eq(ExprEqID("test-id")),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts WHERE id = ?",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE id = ?",
 			wantArgs: []any{"test-id"},
 		},
 		{
 			name:     "single int64 equality",
 			criteria: NewCriteriaFindPosts().Eq(ExprEqPublishedAtMillSec(1640995200000)),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts WHERE published_at = ?",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE published_at = ?",
 			wantArgs: []any{int64(1640995200000)},
 		},
 		{
@@ -35,7 +35,7 @@ func TestCriteriaFindPosts_Build(t *testing.T) {
 			criteria: NewCriteriaFindPosts().
 				Eq(ExprEqID("test-id")).
 				Eq(ExprEqPublishedAtMillSec(1640995200000)),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts WHERE id = ? AND published_at = ?",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE id = ? AND published_at = ?",
 			wantArgs: []any{"test-id", int64(1640995200000)},
 		},
 		{
@@ -45,7 +45,7 @@ func TestCriteriaFindPosts_Build(t *testing.T) {
 					NewCriteriaFindPosts().Eq(ExprEqID("test-id")),
 					NewCriteriaFindPosts().Eq(ExprEqPublishedAtMillSec(1640995200000)),
 				),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts WHERE (id = ? AND published_at = ?)",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE (id = ? AND published_at = ?)",
 			wantArgs: []any{"test-id", int64(1640995200000)},
 		},
 		{
@@ -55,7 +55,7 @@ func TestCriteriaFindPosts_Build(t *testing.T) {
 					NewCriteriaFindPosts().Eq(ExprEqID("test-id-1")),
 					NewCriteriaFindPosts().Eq(ExprEqID("test-id-2")),
 				),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts WHERE (id = ? OR id = ?)",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE (id = ? OR id = ?)",
 			wantArgs: []any{"test-id-1", "test-id-2"},
 		},
 		{
@@ -66,7 +66,7 @@ func TestCriteriaFindPosts_Build(t *testing.T) {
 					NewCriteriaFindPosts().Eq(ExprEqID("test-id-1")),
 					NewCriteriaFindPosts().Eq(ExprEqID("test-id-2")),
 				),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts WHERE published_at = ? AND (id = ? OR id = ?)",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE published_at = ? AND (id = ? OR id = ?)",
 			wantArgs: []any{int64(1640995200000), "test-id-1", "test-id-2"},
 		},
 		{
@@ -79,7 +79,7 @@ func TestCriteriaFindPosts_Build(t *testing.T) {
 					),
 					NewCriteriaFindPosts().Eq(ExprEqPublishedAtMillSec(1640995200000)),
 				),
-			wantSQL:  "SELECT id, title, body, created_at, published_at FROM posts WHERE (((id = ? OR id = ?)) AND published_at = ?)",
+			wantSQL:  "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts WHERE (((id = ? OR id = ?)) AND published_at = ?)",
 			wantArgs: []any{"id-1", "id-2", int64(1640995200000)},
 		},
 	}
