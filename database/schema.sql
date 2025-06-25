@@ -1,7 +1,21 @@
 CREATE TABLE posts (
     id BINARY(16) PRIMARY KEY DEFAULT (UUID_TO_BIN(UUID())),
-    title VARCHAR(50) NOT NULL,
+    title VARCHAR(100) NOT NULL,
     body TEXT(5000) NOT NULL,
+    status ENUM('draft', 'scheduled', 'published') NOT NULL DEFAULT 'draft',
+    scheduled_at TIMESTAMP NULL,
+    category VARCHAR(50) NULL,
+    tags JSON NULL,
+    featured_image_url VARCHAR(500) NULL,
+    meta_description TEXT(300) NULL,
+    slug VARCHAR(200) NULL,
+    sns_auto_post BOOLEAN DEFAULT FALSE,
+    external_notification BOOLEAN DEFAULT FALSE,
+    emergency_flag BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    published_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    published_at TIMESTAMP NULL,
+    INDEX idx_status (status),
+    INDEX idx_category (category),
+    INDEX idx_scheduled_at (scheduled_at),
+    UNIQUE KEY uk_slug (slug)
 );

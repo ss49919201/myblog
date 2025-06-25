@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ss49919201/myblog/api/internal/post/entity/post"
+	"github.com/ss49919201/myblog/api/internal/post/event"
 	"github.com/ss49919201/myblog/api/internal/post/repository"
 )
 
@@ -18,11 +19,12 @@ type UpdatePostOutput struct {
 }
 
 type UpdatePostUsecase struct {
-	repo repository.PostRepository
+	repo       repository.PostRepository
+	dispatcher event.EventDispatcher
 }
 
-func NewUpdatePostUsecase(repo repository.PostRepository) *UpdatePostUsecase {
-	return &UpdatePostUsecase{repo: repo}
+func NewUpdatePostUsecase(repo repository.PostRepository, dispatcher event.EventDispatcher) *UpdatePostUsecase {
+	return &UpdatePostUsecase{repo: repo, dispatcher: dispatcher}
 }
 
 func (u *UpdatePostUsecase) Execute(ctx context.Context, input UpdatePostInput) (*UpdatePostOutput, error) {
@@ -31,16 +33,23 @@ func (u *UpdatePostUsecase) Execute(ctx context.Context, input UpdatePostInput) 
 		return nil, err
 	}
 
-	p, err := post.Construct(input.Title, input.Body)
+	existingPost, err := u.repo.FindByID(ctx, postID)
 	if err != nil {
 		return nil, err
 	}
-	
-	p.ID = postID
 
-	if err := u.repo.Update(ctx, p); err != nil {
+	if err := existingPost.Update(input.Title, input.Body); err != nil {
 		return nil, err
 	}
 
-	return &UpdatePostOutput{Post: p}, nil
+	if err := u.repo.Update(ctx, existingPost); err != nil {
+		return nil, err
+	}
+
+	if err := u.dispatcher.DispatchEvents(ctx, existingPost.Events); err != nil {
+		// イベント配信失敗はログに記録するが、処理は続行
+		// TODO: ログ出力を追加
+	}
+
+	return &UpdatePostOutput{Post: existingPost}, nil
 }

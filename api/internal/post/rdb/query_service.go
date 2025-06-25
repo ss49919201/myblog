@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -117,7 +118,7 @@ func (c *criteriaFindPosts) Build() (string, []any) {
 }
 
 func buildQuery(criteria *criteriaFindPosts) (string, []any) {
-	baseQuery := "SELECT id, title, body, created_at, published_at FROM posts"
+	baseQuery := "SELECT BIN_TO_UUID(id), title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts"
 
 	whereClause, args := buildWhereClause(criteria)
 	if whereClause == "" {
@@ -257,10 +258,13 @@ func FindPosts(ctx context.Context, db *sql.DB, criteria CriteriaFindPosts) ([]*
 	posts := make([]*post.Post, 0)
 
 	for rows.Next() {
-		var id, title, body string
-		var createdAt, publishedAt time.Time
+		var id, title, body, status, category string
+		var scheduledAt, publishedAt *time.Time
+		var tagsJSON, featuredImageURL, metaDescription, slug *string
+		var snsAutoPost, externalNotification, emergencyFlag bool
+		var createdAt time.Time
 
-		err := rows.Scan(&id, &title, &body, &createdAt, &publishedAt)
+		err := rows.Scan(&id, &title, &body, &status, &scheduledAt, &category, &tagsJSON, &featuredImageURL, &metaDescription, &slug, &snsAutoPost, &externalNotification, &emergencyFlag, &createdAt, &publishedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -270,8 +274,15 @@ func FindPosts(ctx context.Context, db *sql.DB, criteria CriteriaFindPosts) ([]*
 			return nil, err
 		}
 
-		// Note: This is simplified - in real implementation you'd parse the timestamps
-		p, err := post.Reconstruct(postID, title, body, createdAt, publishedAt)
+		// tagsをパース
+		var tags []string
+		if tagsJSON != nil {
+			if err := json.Unmarshal([]byte(*tagsJSON), &tags); err != nil {
+				tags = []string{}
+			}
+		}
+
+		p, err := post.Reconstruct(postID, title, body, post.PublicationStatus(status), scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +299,7 @@ func FindPosts(ctx context.Context, db *sql.DB, criteria CriteriaFindPosts) ([]*
 
 // FindAllPosts retrieves all posts ordered by created_at DESC
 func FindAllPosts(ctx context.Context, db *sql.DB) ([]*post.Post, error) {
-	query := "SELECT BIN_TO_UUID(id) as id, title, body, created_at, published_at FROM posts ORDER BY created_at DESC"
+	query := "SELECT BIN_TO_UUID(id) as id, title, body, status, scheduled_at, category, tags, featured_image_url, meta_description, slug, sns_auto_post, external_notification, emergency_flag, created_at, published_at FROM posts ORDER BY created_at DESC"
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
@@ -299,10 +310,13 @@ func FindAllPosts(ctx context.Context, db *sql.DB) ([]*post.Post, error) {
 	posts := make([]*post.Post, 0)
 
 	for rows.Next() {
-		var id, title, body string
-		var createdAt, publishedAt time.Time
+		var id, title, body, status, category string
+		var scheduledAt, publishedAt *time.Time
+		var tagsJSON, featuredImageURL, metaDescription, slug *string
+		var snsAutoPost, externalNotification, emergencyFlag bool
+		var createdAt time.Time
 
-		err := rows.Scan(&id, &title, &body, &createdAt, &publishedAt)
+		err := rows.Scan(&id, &title, &body, &status, &scheduledAt, &category, &tagsJSON, &featuredImageURL, &metaDescription, &slug, &snsAutoPost, &externalNotification, &emergencyFlag, &createdAt, &publishedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -312,7 +326,15 @@ func FindAllPosts(ctx context.Context, db *sql.DB) ([]*post.Post, error) {
 			return nil, err
 		}
 
-		p, err := post.Reconstruct(postID, title, body, createdAt, publishedAt)
+		// tagsをパース
+		var tags []string
+		if tagsJSON != nil {
+			if err := json.Unmarshal([]byte(*tagsJSON), &tags); err != nil {
+				tags = []string{}
+			}
+		}
+
+		p, err := post.Reconstruct(postID, title, body, post.PublicationStatus(status), scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
 		if err != nil {
 			return nil, err
 		}

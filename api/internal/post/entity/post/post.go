@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ss49919201/myblog/api/internal/post/entity/event"
 	"github.com/ss49919201/myblog/api/internal/post/id"
 )
 
@@ -35,12 +36,36 @@ func NewPostID() PostID {
 	return PostID(id.GenerateUUID())
 }
 
+type PostEventType int
+
+const (
+	PostEventTypeCreatePost PostEventType = iota + 1
+	PostEventTypeUpdatePost
+)
+
+type PostEvent struct {
+	ID   event.ID
+	Type PostEventType
+}
+
 type Post struct {
-	ID          PostID    `json:"id"`
-	Title       string    `json:"title"`
-	Body        string    `json:"body"`
-	CreatedAt   time.Time `json:"createdAt"`
-	PublishedAt time.Time `json:"publishdAt"`
+	ID                   PostID            `json:"id"`
+	Title                string            `json:"title"`
+	Body                 string            `json:"body"`
+	Status               PublicationStatus `json:"status"`
+	ScheduledAt          *time.Time        `json:"scheduledAt"`
+	Category             string            `json:"category"`
+	Tags                 []string          `json:"tags"`
+	FeaturedImageURL     *string           `json:"featuredImageURL"`
+	MetaDescription      *string           `json:"metaDescription"`
+	Slug                 *string           `json:"slug"`
+	SNSAutoPost          bool              `json:"snsAutoPost"`
+	ExternalNotification bool              `json:"externalNotification"`
+	EmergencyFlag        bool              `json:"emergencyFlag"`
+	CreatedAt            time.Time         `json:"createdAt"`
+	PublishedAt          *time.Time        `json:"publishedAt"`
+
+	Events []PostEvent
 }
 
 func (p *Post) Update(title string, body string) error {
@@ -55,13 +80,18 @@ func (p *Post) Update(title string, body string) error {
 	p.Title = title
 	p.Body = body
 
+	p.Events = append(p.Events, PostEvent{
+		ID:   event.GenerateID(),
+		Type: PostEventTypeUpdatePost,
+	})
+
 	return nil
 }
 
 func ValidateTitle(title string) error {
-	validTitle := len(title) > 1 && len(title) <= 50
+	validTitle := len(title) > 1 && len(title) <= 100
 	if !validTitle {
-		return errors.New("title must be between 1 and 50 characters")
+		return errors.New("title must be between 1 and 100 characters")
 	}
 
 	return nil
@@ -91,40 +121,96 @@ func ValidateForConstruct(
 	return nil
 }
 
+// Construct creates a new Post with all parameters explicitly specified
 func Construct(
 	title,
 	body string,
+	status PublicationStatus,
+	scheduledAt *time.Time,
+	category string,
+	tags []string,
+	featuredImageURL *string,
+	metaDescription *string,
+	slug *string,
+	snsAutoPost,
+	externalNotification,
+	emergencyFlag bool,
 ) (*Post, error) {
 	if err := ValidateForConstruct(title, body); err != nil {
 		return nil, err
 	}
 
-	return &Post{
-		ID:          NewPostID(),
-		Title:       title,
-		Body:        body,
-		CreatedAt:   time.Now(),
-		PublishedAt: time.Now(),
-	}, nil
+	now := time.Now()
+	post := &Post{
+		ID:                   NewPostID(),
+		Title:                title,
+		Body:                 body,
+		Status:               status,
+		ScheduledAt:          scheduledAt,
+		Category:             category,
+		Tags:                 tags,
+		FeaturedImageURL:     featuredImageURL,
+		MetaDescription:      metaDescription,
+		Slug:                 slug,
+		SNSAutoPost:          snsAutoPost,
+		ExternalNotification: externalNotification,
+		EmergencyFlag:        emergencyFlag,
+		CreatedAt:            now,
+		Events:               []PostEvent{},
+	}
+
+	// Set PublishedAt based on status
+	if status == StatusPublished {
+		post.PublishedAt = &now
+	} else if status == StatusScheduled && scheduledAt != nil {
+		post.PublishedAt = scheduledAt
+	}
+
+	post.Events = append(post.Events, PostEvent{
+		ID:   event.GenerateID(),
+		Type: PostEventTypeCreatePost,
+	})
+
+	return post, nil
 }
 
 func Reconstruct(
 	id PostID,
 	title string,
 	body string,
+	status PublicationStatus,
+	scheduledAt *time.Time,
+	category string,
+	tags []string,
+	featuredImageURL *string,
+	metaDescription *string,
+	slug *string,
+	snsAutoPost bool,
+	externalNotification bool,
+	emergencyFlag bool,
 	createdAt time.Time,
-	publishsedAt time.Time,
+	publishedAt *time.Time,
 ) (*Post, error) {
 	if err := ValidateForConstruct(title, body); err != nil {
 		return nil, err
 	}
 
 	return &Post{
-		ID:          id,
-		Title:       title,
-		Body:        body,
-		CreatedAt:   createdAt,
-		PublishedAt: publishsedAt,
+		ID:                   id,
+		Title:                title,
+		Body:                 body,
+		Status:               status,
+		ScheduledAt:          scheduledAt,
+		Category:             category,
+		Tags:                 tags,
+		FeaturedImageURL:     featuredImageURL,
+		MetaDescription:      metaDescription,
+		Slug:                 slug,
+		SNSAutoPost:          snsAutoPost,
+		ExternalNotification: externalNotification,
+		EmergencyFlag:        emergencyFlag,
+		CreatedAt:            createdAt,
+		PublishedAt:          publishedAt,
 	}, nil
 }
 
