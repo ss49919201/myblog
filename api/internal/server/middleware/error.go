@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,7 @@ func ErrorHandler() gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		// Continue processing the request
 		c.Next()
-		
+
 		// Check if there are any errors
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last().Err
@@ -26,7 +27,7 @@ func ErrorHandler() gin.HandlerFunc {
 func Recovery() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, recovered any) {
 		var err error
-		
+
 		switch v := recovered.(type) {
 		case error:
 			err = v
@@ -35,28 +36,29 @@ func Recovery() gin.HandlerFunc {
 		default:
 			err = errors.New("unknown error")
 		}
-		
+
 		handleError(c, err)
 	})
 }
 
-// handleError converts domain errors to appropriate HTTP responses
 func handleError(c *gin.Context, err error) {
 	// Check for validation errors
 	if post.IsErrValidation(err) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
+		slog.Warn("validation error", slog.String("err", err.Error()))
 		return
 	}
-	
-	// Check for domain-specific errors
+
 	if _, ok := post.AsErrPostNotFound(err); ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
 		c.Abort()
+		slog.Warn("validation error", slog.String("err", err.Error()))
 		return
 	}
-	
+
 	// Default to internal server error for unhandled errors
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 	c.Abort()
+	slog.Error("internal error", slog.String("err", err.Error()))
 }
