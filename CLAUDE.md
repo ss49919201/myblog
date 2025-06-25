@@ -71,6 +71,8 @@ Next.js 15 application with TypeScript and Tailwind CSS:
 - `web/app/` - App router pages
 - `web/lib/api.ts` - API client
 - `web/types/api.ts` - TypeScript type definitions
+- ESLint configured with Next.js and TypeScript rules
+- Cyclomatic complexity linting (max complexity: 10)
 
 ### Database Design
 - Single `posts` table with UUID primary keys
