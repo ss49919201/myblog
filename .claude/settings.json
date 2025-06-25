@@ -1,6 +1,9 @@
 {
   "permissions": {
     "allow": [
+      "Bash(touch:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
       "Bash(go test:*)",
       "Bash(go build:*)",
       "Bash(git add:*)",

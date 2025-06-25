@@ -282,7 +282,7 @@ func FindPosts(ctx context.Context, db *sql.DB, criteria CriteriaFindPosts) ([]*
 			}
 		}
 
-		p, err := post.Reconstruct(postID, title, body, status, scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
+		p, err := post.Reconstruct(postID, title, body, post.PublicationStatus(status), scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -334,7 +334,7 @@ func FindAllPosts(ctx context.Context, db *sql.DB) ([]*post.Post, error) {
 			}
 		}
 
-		p, err := post.Reconstruct(postID, title, body, status, scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
+		p, err := post.Reconstruct(postID, title, body, post.PublicationStatus(status), scheduledAt, category, tags, featuredImageURL, metaDescription, slug, snsAutoPost, externalNotification, emergencyFlag, createdAt, publishedAt)
 		if err != nil {
 			return nil, err
 		}

@@ -11,39 +11,24 @@ import (
 	"github.com/ss49919201/myblog/api/internal/post/repository"
 )
 
-type PublicationStatus string
-
-const (
-	StatusDraft     PublicationStatus = "draft"
-	StatusScheduled PublicationStatus = "scheduled"
-	StatusPublished PublicationStatus = "published"
-)
-
-type UserRole string
-
-const (
-	RoleGeneral UserRole = "general"
-	RoleEditor  UserRole = "editor"
-	RoleAdmin   UserRole = "admin"
-)
 
 type CreatePostInput struct {
-	Title                string             `json:"title"`
-	Body                 string             `json:"body"`
-	Status               PublicationStatus  `json:"status"`
-	ScheduledAt          *time.Time         `json:"scheduledAt"`
-	Category             string             `json:"category"`
-	Tags                 []string           `json:"tags"`
-	FeaturedImageURL     *string            `json:"featuredImageURL"`
-	MetaDescription      *string            `json:"metaDescription"`
-	Slug                 *string            `json:"slug"`
-	SNSAutoPost          bool               `json:"snsAutoPost"`
-	ExternalNotification bool               `json:"externalNotification"`
-	EmergencyFlag        bool               `json:"emergencyFlag"`
+	Title                string                    `json:"title"`
+	Body                 string                    `json:"body"`
+	Status               post.PublicationStatus    `json:"status"`
+	ScheduledAt          *time.Time                `json:"scheduledAt"`
+	Category             string                    `json:"category"`
+	Tags                 []string                  `json:"tags"`
+	FeaturedImageURL     *string                   `json:"featuredImageURL"`
+	MetaDescription      *string                   `json:"metaDescription"`
+	Slug                 *string                   `json:"slug"`
+	SNSAutoPost          bool                      `json:"snsAutoPost"`
+	ExternalNotification bool                      `json:"externalNotification"`
+	EmergencyFlag        bool                      `json:"emergencyFlag"`
 }
 
 type UserContext struct {
-	Role UserRole `json:"role"`
+	Role post.UserRole `json:"role"`
 }
 
 type CreatePostOutput struct {
@@ -82,15 +67,15 @@ func (u *CreatePostUsecase) Execute(ctx context.Context, input CreatePostInput, 
 
 	// 2. 権限ベースバリデーション
 	switch userCtx.Role {
-	case RoleGeneral:
-		if input.Status != StatusDraft {
+	case post.RoleGeneral:
+		if input.Status != post.StatusDraft {
 			return nil, post.NewValidationError("status", "general users can only save as draft")
 		}
-	case RoleEditor:
-		if input.Status == StatusPublished {
+	case post.RoleEditor:
+		if input.Status == post.StatusPublished {
 			return nil, post.NewValidationError("status", "editors can only schedule posts, not publish immediately")
 		}
-	case RoleAdmin:
+	case post.RoleAdmin:
 		// 管理者は全て可能
 	default:
 		return nil, post.NewValidationError("role", "invalid user role")
@@ -121,7 +106,7 @@ func (u *CreatePostUsecase) Execute(ctx context.Context, input CreatePostInput, 
 	}
 
 	if !input.EmergencyFlag {
-		if input.Category == "ニュース" && input.Status == StatusPublished {
+		if input.Category == "ニュース" && input.Status == post.StatusPublished {
 			weekday := now.Weekday()
 			hour := now.Hour()
 			if weekday == time.Saturday || weekday == time.Sunday || hour < 9 || hour >= 18 {
@@ -146,11 +131,11 @@ func (u *CreatePostUsecase) Execute(ctx context.Context, input CreatePostInput, 
 		return nil, post.NewValidationError("body", "posts with 10+ external links require approval workflow")
 	}
 
-	// 6. Post エンティティ作成（既存パターンに従う）
-	p, err := post.ConstructEnhanced(
+	// 6. Post エンティティ作成（全パラメータ指定）
+	p, err := post.Construct(
 		input.Title,
 		input.Body,
-		string(input.Status),
+		input.Status,
 		input.ScheduledAt,
 		input.Category,
 		input.Tags,

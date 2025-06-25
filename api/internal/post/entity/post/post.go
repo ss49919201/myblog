@@ -49,21 +49,21 @@ type PostEvent struct {
 }
 
 type Post struct {
-	ID                   PostID     `json:"id"`
-	Title                string     `json:"title"`
-	Body                 string     `json:"body"`
-	Status               string     `json:"status"`
-	ScheduledAt          *time.Time `json:"scheduledAt"`
-	Category             string     `json:"category"`
-	Tags                 []string   `json:"tags"`
-	FeaturedImageURL     *string    `json:"featuredImageURL"`
-	MetaDescription      *string    `json:"metaDescription"`
-	Slug                 *string    `json:"slug"`
-	SNSAutoPost          bool       `json:"snsAutoPost"`
-	ExternalNotification bool       `json:"externalNotification"`
-	EmergencyFlag        bool       `json:"emergencyFlag"`
-	CreatedAt            time.Time  `json:"createdAt"`
-	PublishedAt          *time.Time `json:"publishedAt"`
+	ID                   PostID            `json:"id"`
+	Title                string            `json:"title"`
+	Body                 string            `json:"body"`
+	Status               PublicationStatus `json:"status"`
+	ScheduledAt          *time.Time        `json:"scheduledAt"`
+	Category             string            `json:"category"`
+	Tags                 []string          `json:"tags"`
+	FeaturedImageURL     *string           `json:"featuredImageURL"`
+	MetaDescription      *string           `json:"metaDescription"`
+	Slug                 *string           `json:"slug"`
+	SNSAutoPost          bool              `json:"snsAutoPost"`
+	ExternalNotification bool              `json:"externalNotification"`
+	EmergencyFlag        bool              `json:"emergencyFlag"`
+	CreatedAt            time.Time         `json:"createdAt"`
+	PublishedAt          *time.Time        `json:"publishedAt"`
 
 	Events []PostEvent
 }
@@ -121,37 +121,11 @@ func ValidateForConstruct(
 	return nil
 }
 
+// Construct creates a new Post with all parameters explicitly specified
 func Construct(
 	title,
 	body string,
-) (*Post, error) {
-	if err := ValidateForConstruct(title, body); err != nil {
-		return nil, err
-	}
-
-	now := time.Now()
-	post := &Post{
-		ID:          NewPostID(),
-		Title:       title,
-		Body:        body,
-		Status:      "draft",
-		CreatedAt:   now,
-		PublishedAt: &now,
-		Events:      []PostEvent{},
-	}
-
-	post.Events = append(post.Events, PostEvent{
-		ID:   event.GenerateID(),
-		Type: PostEventTypeCreatePost,
-	})
-
-	return post, nil
-}
-
-func ConstructEnhanced(
-	title,
-	body,
-	status string,
+	status PublicationStatus,
 	scheduledAt *time.Time,
 	category string,
 	tags []string,
@@ -185,10 +159,10 @@ func ConstructEnhanced(
 		Events:               []PostEvent{},
 	}
 
-	// PublishedAtの設定
-	if status == "published" {
+	// Set PublishedAt based on status
+	if status == StatusPublished {
 		post.PublishedAt = &now
-	} else if status == "scheduled" && scheduledAt != nil {
+	} else if status == StatusScheduled && scheduledAt != nil {
 		post.PublishedAt = scheduledAt
 	}
 
@@ -204,7 +178,7 @@ func Reconstruct(
 	id PostID,
 	title string,
 	body string,
-	status string,
+	status PublicationStatus,
 	scheduledAt *time.Time,
 	category string,
 	tags []string,

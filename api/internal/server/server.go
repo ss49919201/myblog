@@ -97,7 +97,7 @@ func (s *Server) PostsCreate(c *gin.Context, params openapi.PostsCreateParams) {
 	input := usecase.CreatePostInput{
 		Title:                request.Title,
 		Body:                 request.Body,
-		Status:               usecase.PublicationStatus(request.Status),
+		Status:               post.PublicationStatus(request.Status),
 		ScheduledAt:          request.ScheduledAt,
 		Category:             request.Category,
 		Tags:                 tags,
@@ -110,7 +110,7 @@ func (s *Server) PostsCreate(c *gin.Context, params openapi.PostsCreateParams) {
 	}
 
 	userCtx := usecase.UserContext{
-		Role: usecase.UserRole(params.XUserRole),
+		Role: post.UserRole(params.XUserRole),
 	}
 
 	output, err := uc.Execute(c.Request.Context(), input, userCtx)
