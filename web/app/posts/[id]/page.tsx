@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { serverApi } from '@/lib/api';
 import { Post } from '@/types/api';
 import { Metadata } from 'next';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -84,9 +85,7 @@ function PostContent({ post }: { post: Post }) {
       
       <div className="retro-text leading-relaxed">
         <div className="bg-retro-dark bg-opacity-5 p-3 sm:p-6 border-l-2 sm:border-l-4 border-retro-orange mb-4 sm:mb-6">
-          <pre className="whitespace-pre-wrap font-mono text-xs xs:text-sm sm:text-base leading-loose break-words overflow-auto">
-{post.body}
-          </pre>
+          <MarkdownRenderer content={post.body} />
         </div>
       </div>
       

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { serverApi } from '@/lib/api';
 import { Post } from '@/types/api';
 import { Metadata } from 'next';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 export const metadata: Metadata = {
   title: 'ブログ投稿一覧',
@@ -55,9 +56,9 @@ function PostCard({ post }: { post: Post }) {
       </h2>
       
       <div className="retro-text mb-3 sm:mb-4 p-3 sm:p-4 bg-retro-dark bg-opacity-5 border-l-2 sm:border-l-4 border-retro-orange">
-        <pre className="whitespace-pre-wrap font-mono text-xs xs:text-sm sm:text-sm leading-relaxed overflow-hidden">
-{truncatedBody}
-        </pre>
+        <div className="text-xs xs:text-sm sm:text-sm leading-relaxed overflow-hidden max-h-32 overflow-y-hidden">
+          <MarkdownRenderer content={truncatedBody} />
+        </div>
       </div>
       
       <div className="flex justify-end">
