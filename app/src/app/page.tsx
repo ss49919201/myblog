@@ -1,4 +1,3 @@
-import Image from "next/image";
 import styles from "./page.module.css";
 import { searchPosts } from "@/query/post";
 
@@ -7,26 +6,32 @@ export default async function Home() {
 
   return (
     <div className={styles.page}>
-      <header style={{ 
-        textAlign: 'center', 
-        padding: '2rem 0', 
-        borderBottom: '2px solid #e0e0e0', 
-        marginBottom: '2rem' 
-      }}>
-        <h1 style={{ 
-          fontSize: '2.5rem', 
-          fontWeight: 'bold', 
-          color: '#333', 
-          margin: 0,
-          marginBottom: '0.5rem'
-        }}>
+      <header
+        style={{
+          textAlign: "center",
+          padding: "2rem 0",
+          borderBottom: "2px solid #e0e0e0",
+          marginBottom: "2rem",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "2.5rem",
+            fontWeight: "bold",
+            color: "#333",
+            margin: 0,
+            marginBottom: "0.5rem",
+          }}
+        >
           My Blog
         </h1>
-        <p style={{ 
-          fontSize: '1.2rem', 
-          color: '#666', 
-          margin: 0 
-        }}>
+        <p
+          style={{
+            fontSize: "1.2rem",
+            color: "#666",
+            margin: 0,
+          }}
+        >
           技術とアイデアを共有する場所
         </p>
       </header>
@@ -34,7 +39,9 @@ export default async function Home() {
       <main className={styles.main}>
         {posts.length > 0 ? (
           <div>
-            <h2 style={{ marginBottom: '1.5rem', color: '#333' }}>最新の投稿</h2>
+            <h2 style={{ marginBottom: "1.5rem", color: "#333" }}>
+              最新の投稿
+            </h2>
             {posts.map((post) => (
               <article
                 key={post.id}
@@ -53,49 +60,55 @@ export default async function Home() {
           <p>投稿が見つかりませんでした</p>
         )}
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      <footer
+        style={{
+          borderTop: "2px solid #e0e0e0",
+          marginTop: "3rem",
+          padding: "2rem 0",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "2rem",
+            marginBottom: "1rem",
+            flexWrap: "wrap",
+          }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <a
+            href="#"
+            style={{
+              color: "#666",
+              textDecoration: "none",
+              fontSize: "1rem",
+              transition: "color 0.2s",
+            }}
+          >
+            About
+          </a>
+          <a
+            href="#"
+            style={{
+              color: "#666",
+              textDecoration: "none",
+              fontSize: "1rem",
+              transition: "color 0.2s",
+            }}
+          >
+            Contact
+          </a>
+        </div>
+        <p
+          style={{
+            margin: 0,
+            color: "#999",
+            fontSize: "0.9rem",
+          }}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+          © 2025 My Blog. All rights reserved.
+        </p>
       </footer>
     </div>
   );
