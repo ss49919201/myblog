@@ -1,7 +1,10 @@
 import Image from "next/image";
 import styles from "./page.module.css";
+import { getPost } from "@/query/post";
 
-export default function Home() {
+export default async function Home() {
+  const post = await getPost("sample-post-id");
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -13,12 +16,15 @@ export default function Home() {
           height={38}
           priority
         />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+
+        {post ? (
+          <article>
+            <h1>Title is {post.title}</h1>
+            <div>Body is {post.body}</div>
+          </article>
+        ) : (
+          <p>投稿が見つかりませんでした</p>
+        )}
 
         <div className={styles.ctas}>
           <a
