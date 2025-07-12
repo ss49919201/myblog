@@ -7,12 +7,14 @@ export type Post = {
 };
 
 export async function getPost(id: string): Promise<Post | null> {
-  const got = await kvPost().get<JSON>(id);
-  return got && (got as unknown as Post);
+  const kv = await kvPost();
+  const got = await kv.get(id, "json");
+  return got as Post;
 }
 
 export async function searchPosts(): Promise<Post[]> {
-  const { keys } = await kvPost().list<JSON>();
+  const kv = await kvPost();
+  const { keys } = await kv.list<JSON>();
 
   const listed = (
     await Promise.all(
@@ -25,6 +27,7 @@ export async function searchPosts(): Promise<Post[]> {
   return listed as unknown as Post[];
 }
 
-function kvPost(): CloudflareEnv["KV_POST"] {
-  return getCloudflareContext().env.KV_POST;
+async function kvPost(): Promise<CloudflareEnv["KV_POST"]> {
+  const context = await getCloudflareContext({ async: true });
+  return context.env.KV_POST;
 }

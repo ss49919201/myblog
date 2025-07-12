@@ -1,5 +1,6 @@
 import styles from "./page.module.css";
 import { searchPosts } from "@/query/post";
+import Link from "next/link";
 
 export default async function Home() {
   const posts = await searchPosts();
@@ -47,12 +48,54 @@ export default async function Home() {
                 key={post.id}
                 style={{
                   marginBottom: "2rem",
-                  padding: "1rem",
-                  border: "1px solid #ccc",
+                  padding: "1.5rem",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "box-shadow 0.2s",
                 }}
               >
-                <h2>{post.title}</h2>
-                <div>{post.body}</div>
+                <Link
+                  href={`/post/${post.id}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  <h2
+                    style={{
+                      marginBottom: "1rem",
+                      color: "#333",
+                      fontSize: "1.5rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {post.title}
+                  </h2>
+                </Link>
+                <div
+                  style={{
+                    color: "#666",
+                    lineHeight: "1.6",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                  }}
+                >
+                  {post.body}
+                </div>
+                <div style={{ marginTop: "1rem" }}>
+                  <Link
+                    href={`/post/${post.id}`}
+                    style={{
+                      color: "#0070f3",
+                      textDecoration: "none",
+                      fontSize: "0.9rem",
+                      fontWeight: "500",
+                    }}
+                  >
+                    続きを読む →
+                  </Link>
+                </div>
               </article>
             ))}
           </div>
