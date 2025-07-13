@@ -14,7 +14,7 @@ export async function getPost(id: string): Promise<Post | null> {
 
 export async function searchPosts(): Promise<Post[]> {
   const kv = await kvPost();
-  const { keys } = await kv.list<JSON>();
+  const { keys } = await kv.list();
 
   const listed = (
     await Promise.all(
