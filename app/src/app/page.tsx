@@ -1,6 +1,7 @@
 import styles from "./page.module.css";
 import { searchPosts } from "@/query/post";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 export default async function Home() {
   const posts = await searchPosts();
@@ -81,7 +82,28 @@ export default async function Home() {
                     WebkitBoxOrient: "vertical",
                   }}
                 >
-                  {post.body}
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <span>{children} </span>,
+                      h1: ({ children }) => <span style={{ fontWeight: "bold" }}>{children} </span>,
+                      h2: ({ children }) => <span style={{ fontWeight: "bold" }}>{children} </span>,
+                      h3: ({ children }) => <span style={{ fontWeight: "bold" }}>{children} </span>,
+                      h4: ({ children }) => <span style={{ fontWeight: "bold" }}>{children} </span>,
+                      h5: ({ children }) => <span style={{ fontWeight: "bold" }}>{children} </span>,
+                      h6: ({ children }) => <span style={{ fontWeight: "bold" }}>{children} </span>,
+                      code: ({ children }) => <span style={{ fontFamily: "monospace" }}>{children}</span>,
+                      pre: ({ children }) => <span style={{ fontFamily: "monospace" }}>{children}</span>,
+                      strong: ({ children }) => <span style={{ fontWeight: "bold" }}>{children}</span>,
+                      em: ({ children }) => <span style={{ fontStyle: "italic" }}>{children}</span>,
+                      ul: ({ children }) => <span>{children}</span>,
+                      ol: ({ children }) => <span>{children}</span>,
+                      li: ({ children }) => <span>• {children} </span>,
+                      blockquote: ({ children }) => <span>{children} </span>,
+                      a: ({ children }) => <span>{children}</span>,
+                    }}
+                  >
+                    {post.body}
+                  </ReactMarkdown>
                 </div>
                 <div style={{ marginTop: "1rem" }}>
                   <Link
