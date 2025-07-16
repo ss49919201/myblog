@@ -2,6 +2,7 @@ import { getPost } from "@/query/post";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import { createLogger } from "@/logger";
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -9,11 +10,18 @@ interface PostPageProps {
 
 export default async function PostPage({ params }: PostPageProps) {
   const { id } = await params;
+  const logger = createLogger({ component: 'PostPage', postId: id });
+  
+  logger.info(`Rendering post page for ID: ${id}`);
+  
   const post = await getPost(id);
 
   if (!post) {
+    logger.warn(`Post not found, returning 404: ${id}`);
     notFound();
   }
+  
+  logger.info(`Successfully rendered post: ${post.title}`);
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem" }}>

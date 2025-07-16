@@ -2,9 +2,14 @@ import styles from "./page.module.css";
 import { searchPosts } from "@/query/post";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import { createLogger } from "@/logger";
 
 export default async function Home() {
+  const logger = createLogger({ component: 'HomePage' });
+  
+  logger.info('Rendering home page');
   const posts = await searchPosts();
+  logger.info(`Home page rendered with ${posts.length} posts`);
 
   return (
     <div className={styles.page}>
