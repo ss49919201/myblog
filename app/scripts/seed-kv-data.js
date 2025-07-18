@@ -16,6 +16,7 @@ const dummyPosts = [
   {
     id: "post-001",
     title: "Next.js 15 の新機能について",
+    tags: ["Next.js", "React", "フロントエンド"],
     body: `Next.js 15 がリリースされ、多くの新機能と改善が追加されました。
 
 ## 主な新機能
@@ -34,6 +35,7 @@ Image コンポーネントが更に最適化され、より高速な画像読�
   {
     id: "post-002",
     title: "Cloudflare Workers と KV の活用法",
+    tags: ["Cloudflare", "エッジコンピューティング", "パフォーマンス"],
     body: `Cloudflare Workers と KV ストレージを組み合わせることで、高速なエッジコンピューティングが実現できます。
 
 ## KV ストレージの特徴
@@ -52,6 +54,7 @@ Image コンポーネントが更に最適化され、より高速な画像読�
   {
     id: "post-003",
     title: "React Server Components の実践的な使い方",
+    tags: ["React", "Next.js", "フロントエンド", "パフォーマンス"],
     body: `React Server Components (RSC) を実際のプロジェクトで活用する方法について解説します。
 
 ## Server Components のメリット
@@ -76,6 +79,7 @@ Image コンポーネントが更に最適化され、より高速な画像読�
   {
     id: "post-004",
     title: "TypeScript 5.x の新機能と活用法",
+    tags: ["TypeScript", "JavaScript", "型安全性"],
     body: `TypeScript 5.x シリーズで追加された新機能について、実践的な観点から解説します。
 
 ## 主な新機能
@@ -96,6 +100,7 @@ Image コンポーネントが更に最適化され、より高速な画像読�
   {
     id: "post-005",
     title: "Web Performance 最適化のベストプラクティス",
+    tags: ["パフォーマンス", "最適化", "SEO"],
     body: `Webサイトのパフォーマンス最適化について、実践的なテクニックを紹介します。
 
 ## Core Web Vitals の改善

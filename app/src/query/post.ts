@@ -5,6 +5,7 @@ export type Post = {
   id: string;
   title: string;
   body: string;
+  tags: string[];
 };
 
 export async function getPost(id: string): Promise<Post | null> {
@@ -50,6 +51,41 @@ export async function searchPosts(): Promise<Post[]> {
     return listed as unknown as Post[];
   } catch (error) {
     logger.error('Failed to search posts', {}, error as Error);
+    return [];
+  }
+}
+
+export async function searchPostsByTag(tag: string): Promise<Post[]> {
+  const logger = createLogger({ component: 'post.searchPostsByTag' });
+  
+  try {
+    logger.info(`Searching for posts with tag: ${tag}`);
+    const allPosts = await searchPosts();
+    const filteredPosts = allPosts.filter(post => 
+      post.tags && post.tags.includes(tag)
+    );
+    
+    logger.info(`Found ${filteredPosts.length} posts with tag: ${tag}`);
+    return filteredPosts;
+  } catch (error) {
+    logger.error(`Failed to search posts by tag: ${tag}`, { tag }, error as Error);
+    return [];
+  }
+}
+
+export async function getAllTags(): Promise<string[]> {
+  const logger = createLogger({ component: 'post.getAllTags' });
+  
+  try {
+    logger.info('Getting all tags');
+    const allPosts = await searchPosts();
+    const allTags = allPosts.flatMap(post => post.tags || []);
+    const uniqueTags = [...new Set(allTags)].sort();
+    
+    logger.info(`Found ${uniqueTags.length} unique tags`);
+    return uniqueTags;
+  } catch (error) {
+    logger.error('Failed to get all tags', {}, error as Error);
     return [];
   }
 }

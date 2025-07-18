@@ -4,7 +4,7 @@ export interface LogContext {
   requestId?: string;
   component?: string;
   userId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface LogEntry {

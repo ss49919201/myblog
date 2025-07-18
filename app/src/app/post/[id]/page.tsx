@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { createLogger } from "@/logger";
+import PostTags from "@/components/PostTags";
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -54,6 +55,7 @@ export default async function PostPage({ params }: PostPageProps) {
           >
             {post.title}
           </h1>
+          <PostTags tags={post.tags || []} />
         </header>
 
         <div
