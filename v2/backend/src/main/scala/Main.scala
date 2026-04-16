@@ -23,7 +23,11 @@ object Main {
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext = system.executionContext
 
-    val route = LoggingMiddleware(HealthHandler.route ~ MeHandler.route ~ EntriesHandler.route)
+    val route = LoggingMiddleware {
+      pathPrefix("api") {
+        HealthHandler.route ~ MeHandler.route ~ EntriesHandler.route
+      }
+    }
 
     val bindingFuture = Http().newServerAt("localhost", 8080).bind(route)
 

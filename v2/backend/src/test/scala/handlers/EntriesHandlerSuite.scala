@@ -4,6 +4,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
 import munit.FunSuite
 
 import scala.concurrent.Await
@@ -22,9 +23,9 @@ class EntriesHandlerSuite extends FunSuite {
 
   test("GET /entries returns 200 with empty array") {
     val result = for {
-      binding  <- Http().newServerAt("localhost", 0).bind(EntriesHandler.route)
+      binding  <- Http().newServerAt("localhost", 0).bind(pathPrefix("api")(EntriesHandler.route))
       port      = binding.localAddress.getPort
-      response <- Http().singleRequest(HttpRequest(uri = s"http://localhost:$port/entries"))
+      response <- Http().singleRequest(HttpRequest(uri = s"http://localhost:$port/api/entries"))
       body     <- response.entity.toStrict(5.seconds)
       _        <- binding.unbind()
     } yield (response.status, response.entity.contentType, body.data.utf8String)

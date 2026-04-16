@@ -1,15 +1,16 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with code in this directory.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-Scala 3 + Akka HTTP による HTTP API サーバー。`localhost:8080` で起動する。
+Scala 3 + Akka HTTP による HTTP API サーバー。`localhost:8080` で起動する。全エンドポイントは `/api/` プレフィックス以下に配置する。
 
 ## Development Commands
 
 - `sbt compile` - コンパイル
 - `sbt run` - サーバー起動（RETURN キーで停止）
+- `sbt test` - テスト実行
 
 ## Architecture Overview
 
@@ -20,9 +21,14 @@ src/main/scala/
 ├── Main.scala               # エントリーポイント。ルートの組み立てとサーバー起動
 ├── handlers/                # エンドポイントごとのハンドラー
 │   ├── HealthHandler.scala
-│   └── MeHandler.scala
+│   ├── MeHandler.scala
+│   └── EntriesHandler.scala
 └── middleware/              # ミドルウェア
     └── LoggingMiddleware.scala
+
+src/test/scala/
+└── handlers/
+    └── EntriesHandlerSuite.scala
 ```
 
 ### パッケージ
@@ -34,10 +40,14 @@ src/main/scala/
 
 ### ルートの組み立て
 
-`Main.scala` でハンドラーの `route` を `~` で連結し、ミドルウェアでラップする。
+`Main.scala` でハンドラーの `route` を `~` で連結し、`pathPrefix("api")` でラップしてミドルウェアを適用する。
 
 ```scala
-val route = LoggingMiddleware(HealthHandler.route ~ MeHandler.route)
+val route = LoggingMiddleware {
+  pathPrefix("api") {
+    HealthHandler.route ~ MeHandler.route ~ EntriesHandler.route
+  }
+}
 ```
 
 `~` を使用するには `akka.http.scaladsl.server.Directives._` の import が必要。
@@ -46,7 +56,7 @@ val route = LoggingMiddleware(HealthHandler.route ~ MeHandler.route)
 
 ### ハンドラー
 
-`object` にルートを定義する。レスポンスは `application/json` で返す。
+`object` にルートを定義する。レスポンスは `application/json` で返す。パスには `/api/` プレフィックスを含めない（`Main.scala` の `pathPrefix` で付与される）。
 
 ```scala
 object FooHandler {
@@ -75,18 +85,45 @@ object LoggingMiddleware {
 }
 ```
 
-## Endpoints
+### テスト
 
-| Method | Path      | Description          |
-|--------|-----------|----------------------|
-| GET    | /health   | ヘルスチェック。`{"status":"ok"}` を返す |
-| GET    | /me       | 現在のユーザー情報。現在は `{}` を返す |
+`akka-http-testkit` の `RouteTest with TestFrameworkInterface` は Scala 3 でコンパイルエラーになるため使用しない。代わりにポート 0 でサーバーをバインドし、`Http().singleRequest` で実リクエストを送るパターンを使用する。
+
+```scala
+class FooHandlerSuite extends FunSuite {
+  implicit lazy val system: ActorSystem[Nothing] =
+    ActorSystem(Behaviors.empty, "test-system")
+  implicit lazy val ec: scala.concurrent.ExecutionContext = system.executionContext
+
+  override def afterAll(): Unit = {
+    system.terminate()
+    super.afterAll()
+  }
+
+  test("GET /foo returns 200") {
+    val result = for {
+      binding  <- Http().newServerAt("localhost", 0).bind(pathPrefix("api")(FooHandler.route))
+      port      = binding.localAddress.getPort
+      response <- Http().singleRequest(HttpRequest(uri = s"http://localhost:$port/api/foo"))
+      body     <- response.entity.toStrict(5.seconds)
+      _        <- binding.unbind()
+    } yield (response.status, body.data.utf8String)
+
+    val (status, body) = Await.result(result, 10.seconds)
+    assertEquals(status, StatusCodes.OK)
+  }
+}
+```
+
+ポート 0 を使うことでテスト並列実行時のポート衝突を防ぐ。
 
 ## Dependencies
 
 ```
-Scala:    3.8.3
-Akka:     2.7.0
-Akka HTTP: 10.5.2
-munit:    1.2.4 (test)
+Scala:             3.8.3
+Akka:              2.7.0
+Akka HTTP:         10.5.2
+munit:             1.2.4 (test)
+akka-http-testkit: 10.5.2 (test)
+akka-stream-testkit: 2.7.0 (test)
 ```
