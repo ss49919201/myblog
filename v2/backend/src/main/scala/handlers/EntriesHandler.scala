@@ -1,15 +1,20 @@
 package docs.http.scaladsl.handlers
 
-import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import docs.http.scaladsl.db.EntryRepository
+import docs.http.scaladsl.models.EntryJsonProtocol._
+import spray.json.JsArray
 
 object EntriesHandler {
 
-  val route: Route =
+  def route(repo: EntryRepository): Route =
     path("entries") {
       get {
-        complete(HttpEntity(ContentTypes.`application/json`, "[]"))
+        val json = JsArray(repo.findAll().map(entryFormat.write).toVector)
+        complete(HttpEntity(ContentTypes.`application/json`, json.compactPrint))
       }
     }
 }

@@ -8,6 +8,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
+import docs.http.scaladsl.db.MysqlEntryRepository
 import docs.http.scaladsl.handlers.EntriesHandler
 import docs.http.scaladsl.handlers.HealthHandler
 import docs.http.scaladsl.handlers.MeHandler
@@ -25,7 +26,7 @@ object Main {
 
     val route = LoggingMiddleware {
       pathPrefix("api") {
-        HealthHandler.route ~ MeHandler.route ~ EntriesHandler.route
+        HealthHandler.route ~ MeHandler.route ~ EntriesHandler.route(MysqlEntryRepository)
       }
     }
 
