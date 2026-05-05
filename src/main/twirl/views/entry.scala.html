@@ -1,0 +1,9 @@
+@(entry: work.ss49919201.blog.Entry)
+@layouts.html.default(entry.title) {
+  <article>
+    <h1>@entry.title</h1>
+    <p class="entry-meta">@entry.date</p>
+    @Html(entry.bodyHtml)
+  </article>
+  <p><a href="/">&larr; 一覧に戻る</a></p>
+}

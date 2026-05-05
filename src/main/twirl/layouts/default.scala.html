@@ -1,0 +1,22 @@
+@(title: String)(body: Html)
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@title</title>
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+      a { color: #0066cc; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      header { border-bottom: 1px solid #ddd; margin-bottom: 2em; padding-bottom: 1em; }
+      .entry-meta { color: #666; font-size: 0.9em; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/">Blog</a>
+    </header>
+    @body
+  </body>
+</html>

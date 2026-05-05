@@ -1,0 +1,16 @@
+@(entries: List[work.ss49919201.blog.Entry])
+@layouts.html.default("Blog") {
+@if(entries.isEmpty) {
+    <p>記事がありません。</p>
+  } else {
+    <ul>
+      @for(e <- entries) {
+        <li>
+          <span class="entry-meta">@e.date</span>
+          &nbsp;
+          <a href="/entries/@e.id">@e.title</a>
+        </li>
+      }
+    </ul>
+  }
+}
