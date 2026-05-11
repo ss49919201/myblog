@@ -17,8 +17,8 @@ class EntryRepository(entriesDir: File):
   private val yaml = new Yaml()
 
   def findAll(): List[Entry] =
-    entriesDir
-      .listFiles()
+    Option(entriesDir.listFiles())
+      .getOrElse(Array.empty[File])
       .toList
       .filter(_.getName.endsWith(".md"))
       .flatMap(f => parse(f))
