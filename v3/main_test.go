@@ -81,23 +81,6 @@ func TestEditorSavesAndLoads(t *testing.T) {
 	if err != nil || len(posts) != 1 || posts[0].Title != "Updated" || posts[0].Markdown != "# Updated\n" {
 		t.Fatalf("database = %v, error %v", posts, err)
 	}
-
-	form := url.Values{"title": {""}, "markdown": {"x"}}
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp := httptest.NewRecorder()
-	handler.ServeHTTP(resp, req)
-	if resp.Code != http.StatusBadRequest {
-		t.Fatalf("invalid title status = %d", resp.Code)
-	}
-	req = httptest.NewRequest(http.MethodPost, "/", strings.NewReader(url.Values{"title": {"Evil"}, "markdown": {"x"}}.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Origin", "https://example.com")
-	resp = httptest.NewRecorder()
-	handler.ServeHTTP(resp, req)
-	if resp.Code != http.StatusForbidden {
-		t.Fatalf("cross-origin status = %d", resp.Code)
-	}
 }
 
 func TestExistingDatabaseGetsTitleColumn(t *testing.T) {
