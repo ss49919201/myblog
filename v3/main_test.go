@@ -32,10 +32,10 @@ func TestEditorSavesAndLoads(t *testing.T) {
 		t.Fatalf("empty editor status %d: %s", empty.Code, empty.Body.String())
 	}
 
-	filename := ""
+	id := ""
 	for i, body := range []string{"# First\nIt's here.\n", "# Updated\n"} {
 		title := []string{"First", "Updated"}[i]
-		form := url.Values{"filename": {filename}, "title": {title}, "markdown": {body}}
+		form := url.Values{"id": {id}, "title": {title}, "markdown": {body}}
 		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(form.Encode()))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		resp := httptest.NewRecorder()
@@ -47,14 +47,14 @@ func TestEditorSavesAndLoads(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		newFilename := location.Query().Get("filename")
-		if _, err := uuid.Parse(strings.TrimSuffix(newFilename, ".md")); err != nil || !strings.HasSuffix(newFilename, ".md") {
-			t.Fatalf("filename = %q, error %v", newFilename, err)
+		newID := location.Query().Get("id")
+		if _, err := uuid.Parse(newID); err != nil {
+			t.Fatalf("id = %q, error %v", newID, err)
 		}
-		if filename != "" && newFilename != filename {
-			t.Fatalf("filename changed: %q to %q", filename, newFilename)
+		if id != "" && newID != id {
+			t.Fatalf("id changed: %q to %q", id, newID)
 		}
-		filename = newFilename
+		id = newID
 		view := httptest.NewRecorder()
 		handler.ServeHTTP(view, httptest.NewRequest(http.MethodGet, resp.Header().Get("Location"), nil))
 		page := html.UnescapeString(view.Body.String())
@@ -62,13 +62,13 @@ func TestEditorSavesAndLoads(t *testing.T) {
 			t.Fatalf("status %d, body %q", view.Code, page)
 		}
 	}
-	if err := store.Update(ctx, post.Post{Filename: filename, Title: "Updated", Markdown: "# Updated\n"}); err != nil {
+	if err := store.Update(ctx, post.Post{ID: id, Title: "Updated", Markdown: "# Updated\n"}); err != nil {
 		t.Fatalf("same-value update: %v", err)
 	}
-	if err := store.Update(ctx, post.Post{Filename: "missing.md", Title: "Missing", Markdown: "x"}); !errors.Is(err, post.ErrNotFound) {
+	if err := store.Update(ctx, post.Post{ID: "missing", Title: "Missing", Markdown: "x"}); !errors.Is(err, post.ErrNotFound) {
 		t.Fatalf("missing update: %v", err)
 	}
-	missing := url.Values{"filename": {"missing.md"}, "title": {"Missing"}, "markdown": {"x"}}
+	missing := url.Values{"id": {"missing"}, "title": {"Missing"}, "markdown": {"x"}}
 	missingReq := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(missing.Encode()))
 	missingReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	missingResp := httptest.NewRecorder()
@@ -78,39 +78,57 @@ func TestEditorSavesAndLoads(t *testing.T) {
 	}
 
 	posts, err := store.List(ctx)
-	if err != nil || len(posts) != 1 || posts[0].Title != "Updated" || posts[0].Markdown != "# Updated\n" {
+	if err != nil || len(posts) != 1 || posts[0].ID != id || posts[0].Filename() != id+".md" || posts[0].Title != "Updated" || posts[0].Markdown != "# Updated\n" {
 		t.Fatalf("database = %v, error %v", posts, err)
 	}
 }
 
-func TestExistingDatabaseGetsTitleColumn(t *testing.T) {
-	ctx := context.Background()
-	db := filepath.Join(t.TempDir(), "blog.db")
-	conn, err := sql.Open("sqlite3", db)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := conn.ExecContext(ctx, "CREATE TABLE posts (filename TEXT PRIMARY KEY, markdown TEXT NOT NULL)"); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := conn.ExecContext(ctx, "INSERT INTO posts VALUES ('old.md', '# Old')"); err != nil {
-		t.Fatal(err)
-	}
-	conn.Close()
-	for range 2 {
-		store, err := post.NewSQLiteStore(ctx, db)
-		if err != nil {
-			t.Fatal(err)
-		}
-		store.Close()
-	}
-	conn, err = sql.Open("sqlite3", db)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer conn.Close()
-	var filename, title, markdown string
-	if err := conn.QueryRowContext(ctx, "SELECT filename, title, markdown FROM posts").Scan(&filename, &title, &markdown); err != nil || filename != "old.md" || title != "" || markdown != "# Old" {
-		t.Fatalf("migrated row = %q, %q, %q; error %v", filename, title, markdown, err)
+func TestExistingDatabaseGetsIDAndTitleColumns(t *testing.T) {
+	for _, withTitle := range []bool{false, true} {
+		t.Run(map[bool]string{false: "without title", true: "with title"}[withTitle], func(t *testing.T) {
+			ctx := context.Background()
+			db := filepath.Join(t.TempDir(), "blog.db")
+			conn, err := sql.Open("sqlite3", db)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := conn.ExecContext(ctx, "CREATE TABLE posts (filename TEXT PRIMARY KEY, markdown TEXT NOT NULL)"); err != nil {
+				t.Fatal(err)
+			}
+			if withTitle {
+				if _, err := conn.ExecContext(ctx, "ALTER TABLE posts ADD COLUMN title TEXT NOT NULL DEFAULT ''"); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err := conn.ExecContext(ctx, "INSERT INTO posts (filename, markdown) VALUES ('old.md', '# Old')"); err != nil {
+				t.Fatal(err)
+			}
+			if withTitle {
+				if _, err := conn.ExecContext(ctx, "UPDATE posts SET title='Legacy'"); err != nil {
+					t.Fatal(err)
+				}
+			}
+			conn.Close()
+			for range 2 {
+				store, err := post.NewSQLiteStore(ctx, db)
+				if err != nil {
+					t.Fatal(err)
+				}
+				store.Close()
+			}
+			conn, err = sql.Open("sqlite3", db)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer conn.Close()
+			var id, title, markdown string
+			wantTitle := ""
+			if withTitle {
+				wantTitle = "Legacy"
+			}
+			if err := conn.QueryRowContext(ctx, "SELECT id, title, markdown FROM posts").Scan(&id, &title, &markdown); err != nil || id != "old" || title != wantTitle || markdown != "# Old" {
+				t.Fatalf("migrated row = %q, %q, %q; error %v", id, title, markdown, err)
+			}
+		})
 	}
 }

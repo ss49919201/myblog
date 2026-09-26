@@ -35,7 +35,7 @@ func getPage(store *post.Store) http.HandlerFunc {
 		}
 		var current post.Post
 		for _, p := range posts {
-			if p.Filename == r.URL.Query().Get("filename") {
+			if p.ID == r.URL.Query().Get("id") {
 				current = p
 				break
 			}
@@ -52,12 +52,12 @@ func getPage(store *post.Store) http.HandlerFunc {
 
 func createPost(store *post.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		name, title, body := r.PostFormValue("filename"), r.PostFormValue("title"), r.PostFormValue("markdown")
-		editing := name != ""
+		id, title, body := r.PostFormValue("id"), r.PostFormValue("title"), r.PostFormValue("markdown")
+		editing := id != ""
 		if !editing {
-			name = uuid.New().String() + ".md"
+			id = uuid.New().String()
 		}
-		p := post.Post{Filename: name, Title: title, Markdown: body}
+		p := post.Post{ID: id, Title: title, Markdown: body}
 		var err error
 		if editing {
 			err = store.Update(r.Context(), p)
@@ -73,6 +73,6 @@ func createPost(store *post.Store) http.HandlerFunc {
 			http.Error(w, "保存できません", http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/?filename="+url.QueryEscape(name)+"&saved=1", http.StatusSeeOther)
+		http.Redirect(w, r, "/?id="+url.QueryEscape(id)+"&saved=1", http.StatusSeeOther)
 	}
 }

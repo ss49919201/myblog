@@ -9,9 +9,9 @@ textarea{min-height:60vh;font-family:ui-monospace,monospace}button{font:inherit;
 @media(max-width:650px){main{display:block}textarea{min-height:50vh}}
 </style>
 <h1>Blog CMS</h1><main><aside><a href="/">新規記事</a><h2>記事</h2>
-{{range .Posts}}<a href="/?filename={{.Filename | urlquery}}">{{if .Title}}{{.Title}}{{else}}{{.Filename}}{{end}}</a>{{end}}</aside>
+{{range .Posts}}<a href="/?id={{.ID | urlquery}}">{{if .Title}}{{.Title}}{{else}}{{.ID}}{{end}}</a>{{end}}</aside>
 <section>{{if .Saved}}<p role="status">保存しました</p>{{end}}
-<form method="post" action="/"><input type="hidden" name="filename" value="{{.Current.Filename}}">
+<form method="post" action="/"><input type="hidden" name="id" value="{{.Current.ID}}">
 <label for="title">タイトル</label><input id="title" name="title" value="{{.Current.Title}}" required>
 <label for="markdown">Markdown</label><textarea id="markdown" name="markdown" required>{{.Current.Markdown}}</textarea>
 <button type="submit">保存</button></form></section></main></html>
