@@ -13,8 +13,8 @@ import (
 	"testing"
 	"uuid"
 
-	"myblog/v3/post"
-	"myblog/v3/server"
+	"github.com/ss49919201/myblog/cms/post"
+	"github.com/ss49919201/myblog/cms/server"
 )
 
 func TestEditorSavesAndLoads(t *testing.T) {

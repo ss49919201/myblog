@@ -12,7 +12,7 @@ import (
 
 	"github.com/samber/lo"
 
-	"myblog/v3/post"
+	"github.com/ss49919201/myblog/cms/post"
 )
 
 //go:embed editor.tmpl

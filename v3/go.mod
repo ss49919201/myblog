@@ -1,4 +1,4 @@
-module myblog/v3
+module github.com/ss49919201/myblog/cms
 
 go 1.27
 

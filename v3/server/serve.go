@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"myblog/v3/post"
+	"github.com/ss49919201/myblog/cms/post"
 )
 
 func Serve(store *post.Store) error {
