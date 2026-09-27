@@ -10,6 +10,8 @@ import (
 	"time"
 	"uuid"
 
+	"github.com/samber/lo"
+
 	"myblog/v3/post"
 )
 
@@ -33,13 +35,7 @@ func getPage(store *post.Store) http.HandlerFunc {
 			http.Error(w, "記事を読み込めません", http.StatusInternalServerError)
 			return
 		}
-		var current post.Post
-		for _, p := range posts {
-			if p.ID == r.URL.Query().Get("id") {
-				current = p
-				break
-			}
-		}
+		current, _ := lo.Find(posts, func(p post.Post) bool { return p.ID == r.URL.Query().Get("id") })
 		if err := page.Execute(w, struct {
 			Posts   []post.Post
 			Current post.Post
