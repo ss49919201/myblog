@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 
-export type PostStatus = "draft" | "published";
+type PostStatus = "draft" | "published";
 
 export type Post = {
   id: number;
