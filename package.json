@@ -1,0 +1,42 @@
+{
+  "name": "myblog",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@10.9.8",
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.20",
+    "@vinext/cloudflare": "^1.0.1",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-markdown": "^10.1.0",
+    "react-server-dom-webpack": "^19.3.0",
+    "remark-gfm": "^4.0.1",
+    "vinext": "^1.0.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^2.0.0-beta.sha-52b0dc0e9",
+    "@tailwindcss/postcss": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-rsc": "^0.5.35",
+    "cf": "^1.0.0-beta.12",
+    "tailwindcss": "latest",
+    "typescript": "latest",
+    "vite": "^8.3.0"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "vite preview",
+    "deploy": "vinext-cloudflare deploy",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "cf d1 migrations apply $npm_package_config_d1DatabaseId --local --persist-to .cloudflare/state",
+    "db:migrate:remote": "cf d1 migrations apply $npm_package_config_d1DatabaseId"
+  },
+  "config": {
+    "d1DatabaseId": "00000000000000000000000000000000"
+  }
+}
