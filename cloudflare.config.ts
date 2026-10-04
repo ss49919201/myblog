@@ -12,7 +12,6 @@ export default defineConfig({
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
       DB: bindings.d1({ name: "myblog", id: pkg.config.d1DatabaseId }),
-      ADMIN_PASSWORD: bindings.secret(),
     },
   }),
 });
