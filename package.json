@@ -22,6 +22,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "@vitejs/plugin-rsc": "^0.5.35",
     "cf": "^1.0.0-beta.12",
+    "knip": "^6.39.0",
     "tailwindcss": "latest",
     "typescript": "latest",
     "vite": "^8.3.0"
@@ -33,6 +34,7 @@
     "start": "vite preview",
     "deploy": "vinext-cloudflare deploy",
     "typecheck": "tsc --noEmit",
+    "knip": "knip",
     "db:migrate:local": "cf d1 migrations apply $npm_package_config_d1DatabaseId --local --persist-to .cloudflare/state",
     "db:migrate:remote": "cf d1 migrations apply $npm_package_config_d1DatabaseId"
   },

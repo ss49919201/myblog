@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@6.39.0/schema.json",
+  "next": true,
+  "entry": ["cloudflare.config.ts"],
+  "include": ["files", "exports", "nsExports", "types", "nsTypes"]
+}
