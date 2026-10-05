@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { formatDate } from "@/lib/format";
 import { searchPublishedPosts } from "@/lib/posts";
+import { PostList } from "../_components/post-list";
 
 export const dynamic = "force-dynamic";
 
@@ -42,25 +41,7 @@ export default async function SearchPage({ searchParams }: Props) {
             <p className="mb-6 text-sm text-slate-500">
               「{query}」の検索結果: {posts.length} 件
             </p>
-            <ul className="flex flex-col gap-6">
-              {posts.map((post) => (
-                <li key={post.id}>
-                  <article>
-                    <time
-                      className="text-sm text-slate-500"
-                      dateTime={post.published_at ?? undefined}
-                    >
-                      {formatDate(post.published_at)}
-                    </time>
-                    <h2 className="mt-1 text-2xl font-semibold">
-                      <Link href={`/posts/${post.slug}`} className="hover:underline">
-                        {post.title}
-                      </Link>
-                    </h2>
-                  </article>
-                </li>
-              ))}
-            </ul>
+            <PostList posts={posts} />
           </>
         )}
       </div>
