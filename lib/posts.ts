@@ -27,10 +27,10 @@ export async function listPublishedPosts(): Promise<PostSummary[]> {
 export async function searchPublishedPosts(query: string): Promise<PostSummary[]> {
   const pattern = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
   const { results } = await env.DB.prepare(
-    `SELECT ${SUMMARY_COLUMNS} FROM posts
-     WHERE status = 'published'
-       AND (title LIKE ?1 ESCAPE '\\' OR body LIKE ?1 ESCAPE '\\')
-     ORDER BY published_at DESC`,
+    `SELECT ${SUMMARY_COLUMNS} FROM posts p
+     WHERE p.status = 'published'
+       AND (p.title LIKE ?1 ESCAPE '\\' OR p.body LIKE ?1 ESCAPE '\\')
+     ORDER BY p.published_at DESC`,
   )
     .bind(pattern)
     .all<PostSummary>();
