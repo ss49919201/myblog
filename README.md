@@ -4,7 +4,21 @@ Next.js App Router（[vinext](https://github.com/cloudflare/vinext)）+ Cloudfla
 
 - `/` 公開記事一覧、`/posts/:slug` 記事詳細（Markdown）
 - `/search?q=...` 公開記事のタイトル・本文検索（下書きは対象外）
+- `/categories/:slug` カテゴリー別の公開記事一覧
 - `/api/posts` 公開記事一覧の JSON
+
+## カテゴリー
+
+カテゴリーは `categories` テーブルに保存し、記事は `posts.category_id` で 1 つのカテゴリーに属します（未設定も可）。
+管理画面はないため、マイグレーションを追加して割り当てます。
+
+```sql
+INSERT INTO categories (slug, name) VALUES ('tech', '技術');
+
+UPDATE posts
+SET category_id = (SELECT id FROM categories WHERE slug = 'tech')
+WHERE slug = 'my-post';
+```
 
 ## ローカル開発
 
