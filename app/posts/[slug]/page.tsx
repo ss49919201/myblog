@@ -4,6 +4,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { formatDate } from "@/lib/format";
 import { findPublishedPostBySlug } from "@/lib/posts";
+import { CategoryLink } from "../../_components/category-link";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +21,12 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <article>
-      <time className="text-sm text-slate-500" dateTime={post.published_at ?? undefined}>
-        {formatDate(post.published_at)}
-      </time>
+      <div className="flex items-center gap-3">
+        <time className="text-sm text-slate-500" dateTime={post.published_at ?? undefined}>
+          {formatDate(post.published_at)}
+        </time>
+        <CategoryLink {...post} />
+      </div>
       <h1 className="mt-1 text-3xl font-bold">{post.title}</h1>
       <div className="prose prose-slate mt-8 max-w-none">
         <Markdown remarkPlugins={[remarkGfm]}>{post.body}</Markdown>
