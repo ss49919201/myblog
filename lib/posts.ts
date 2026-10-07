@@ -35,6 +35,19 @@ export async function listPublishedPosts(): Promise<PostSummary[]> {
   return results;
 }
 
+export async function searchPublishedPosts(query: string): Promise<PostSummary[]> {
+  const pattern = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
+  const { results } = await env.DB.prepare(
+    `SELECT ${SUMMARY_COLUMNS} ${FROM_POSTS}
+     WHERE p.status = 'published'
+       AND (p.title LIKE ?1 ESCAPE '\\' OR p.body LIKE ?1 ESCAPE '\\')
+     ORDER BY p.published_at DESC`,
+  )
+    .bind(pattern)
+    .all<PostSummary>();
+  return results;
+}
+
 export async function listPublishedPostsByCategory(categoryId: number): Promise<PostSummary[]> {
   const { results } = await env.DB.prepare(
     `SELECT ${SUMMARY_COLUMNS} ${FROM_POSTS} WHERE p.category_id = ? AND p.status = 'published' ORDER BY p.published_at DESC`,

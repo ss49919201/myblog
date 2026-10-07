@@ -3,6 +3,7 @@
 Next.js App Router（[vinext](https://github.com/cloudflare/vinext)）+ Cloudflare Workers + Cloudflare D1 で動くブログ。
 
 - `/` 公開記事一覧、`/posts/:slug` 記事詳細（Markdown）
+- `/search?q=...` 公開記事のタイトル・本文検索（下書きは対象外）
 - `/categories/:slug` カテゴリー別の公開記事一覧
 - `/api/posts` 公開記事一覧の JSON
 
