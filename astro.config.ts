@@ -10,9 +10,20 @@ const site = process.env.SITE ?? "https://example.com";
 
 export default defineConfig({
   site,
-  trailingSlash: "never",
+  // Directory output is served both with and without a trailing slash.
+  // Pagefind links to the directory form (`/posts/hello-world/`).
+  trailingSlash: "ignore",
   compressHTML: true,
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      serialize(item) {
+        const url = new URL(item.url);
+        if (url.pathname !== "/") url.pathname = url.pathname.replace(/\/$/, "");
+        item.url = url.href;
+        return item;
+      },
+    }),
+  ],
   markdown: {
     processor: satteri({
       hastPlugins: [satteriSanitize()],
