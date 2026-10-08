@@ -63,20 +63,24 @@ CI では `go vet`、`go test -race`、`go run ./cmd/blog check`、および `go
 
 ## 必要条件
 
-Node.js 22.12 以上（`.nvmrc` は 22.14.0）。
+Node.js 22.12 以上（`.nvmrc` は 22.14.0）。パッケージマネージャーは pnpm で、バージョンは `package.json` の `packageManager` に固定しています。Node.js に同梱の Corepack がその指定を使います。
+
+```sh
+corepack enable
+```
 
 ## ローカル開発
 
 ```sh
-npm ci
-npm run dev
+pnpm install --frozen-lockfile
+pnpm run dev
 ```
 
 開発サーバーでは Pagefind の索引が無いため、検索結果は出ません。検索を確認するときはビルドしてプレビューします。
 
 ```sh
-npm run build
-npm run preview
+pnpm run build
+pnpm run preview
 ```
 
 ## 本番 URL
@@ -84,22 +88,22 @@ npm run preview
 正規 URL、OGP、RSS、サイトマップは `astro.config.ts` の `site` を使います。未設定時は環境変数 `SITE`、それも無いときは `https://example.com` です。デプロイ前に本番のオリジンへ変えてください。
 
 ```sh
-SITE=https://myblog.example npm run build
+SITE=https://myblog.example pnpm run build
 ```
 
 ## デプロイ
 
 Cloudflare Workers の静的アセットとして配信します。Worker のスクリプト、D1、画像バインディングはありません。
 
-1. `npx wrangler login`
+1. `pnpm exec wrangler login`
 2. 必要なら `wrangler.jsonc` の `name` を変える
-3. `SITE` を本番オリジンにして `npm run deploy`
+3. `SITE` を本番オリジンにして `pnpm run deploy`
 
-`npm run deploy` はビルド（Pagefind の索引作成を含む）のあと `wrangler deploy` します。不明なパスは `dist/404.html` を 404 で返します。
+`pnpm run deploy` はビルド（Pagefind の索引作成を含む）のあと `wrangler deploy` します。不明なパスは `dist/404.html` を 404 で返します。
 
 ## チェック
 
 ```sh
-npm run typecheck
-npm run knip
+pnpm run typecheck
+pnpm run knip
 ```

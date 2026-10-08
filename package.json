@@ -2,11 +2,11 @@
   "name": "myblog",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "npm@10.9.8",
+  "packageManager": "pnpm@12.10.1",
   "type": "module",
   "engines": {
     "node": ">=22.12.0",
-    "npm": ">=10.9.0"
+    "pnpm": ">=12.10.1"
   },
   "scripts": {
     "dev": "astro dev",
@@ -15,7 +15,7 @@
     "check": "astro check",
     "typecheck": "astro check",
     "knip": "knip",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "pnpm run build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.3",
@@ -37,8 +37,5 @@
     "pagefind": "^1.5.2",
     "typescript": "^6.0.3",
     "wrangler": "^4.148.0"
-  },
-  "overrides": {
-    "satteri": "0.10.5"
   }
 }
