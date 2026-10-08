@@ -51,13 +51,9 @@ func runNew(root string, args []string, stdout, stderr io.Writer) int {
 	title := fs.String("title", "", "記事のタイトル")
 	slugFlag := fs.String("slug", "", "記事のスラッグ")
 	categoryFlag := fs.String("category", "", "カテゴリ id（省略可）")
-	dateFlag := fs.String("date", "", "公開日時（RFC3339。省略時は現在時刻）")
+	dateFlag := fs.String("date", "", "公開日時。省略すると現在時刻。2006-01-02、ゾーン無しの時刻、または RFC3339")
 	draft := fs.Bool("draft", true, "下書きにする")
 	if err := fs.Parse(args); err != nil {
-		return exitUsage
-	}
-	if *slugFlag == "" {
-		fmt.Fprintln(stderr, "-slug は必須です")
 		return exitUsage
 	}
 	slug, err := content.ParseSlug(*slugFlag)
