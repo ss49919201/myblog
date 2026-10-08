@@ -35,6 +35,28 @@ draft: false
 name: お知らせ
 ```
 
+## 入稿 CLI
+
+リポジトリのルートで実行します。Go 1.22 以上が必要です。
+
+```sh
+go run ./cmd/blog new -title "Hello, world" -slug hello-world -category news
+go run ./cmd/blog check
+```
+
+`blog new` は `src/content/posts/<slug>.md` に雛形を作り、そのパスを標準出力に出します。既定は `draft: true` です。`-draft=false` で公開状態にします。`-date` を省略すると現在時刻（ローカルタイムゾーン、秒まで）を書きます。同じ slug の記事が既にあると、下書きでも作成しません。
+
+`blog check` は記事の frontmatter を検証します。問題があるときは 1 行ずつ表示して終了コード 1 で終わります。検証内容は次のとおりです。
+
+- キーは `title` `slug` `date` `category` `draft` のみ。`title` `slug` `date` は必須
+- 値の型が Astro のスキーマと一致する（例: `draft: yes` は不可、`title: 2024` は不可）
+- ファイルは `src/content/posts/<slug>.md` に置く（`slug` は 1 つのパス要素。日本語も可）
+- `date` は `2026-10-03`、ゾーン無しの `2026-10-03T15:04:05`（UTC）、または `Z` / 数値オフセット付きの RFC3339
+- slug は全記事で重複しない（下書きも含む）
+- `category` は `src/content/categories/<id>.md` が存在する id を指す
+
+CI では `go vet`、`go test -race`、`go run ./cmd/blog check`、および `golang.org/x/tools/cmd/deadcode` を実行します（`.github/workflows/go.yml`）。
+
 ## 必要条件
 
 Node.js 22.12 以上（`.nvmrc` は 22.14.0）。

@@ -1,0 +1,24 @@
+name: go
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go vet ./cmd/... ./internal/...
+      - run: go test -race ./cmd/... ./internal/... .
+      - run: go run ./cmd/blog check
+      - run: GOTOOLCHAIN=auto go run golang.org/x/tools/cmd/deadcode@v0.51.0 ./cmd/... ./internal/... | awk '{ print } END { exit NR > 0 }'
