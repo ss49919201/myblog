@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "../lib/og/constants";
 import { siteDescription, siteName } from "../lib/site";
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
   description?: string;
   ogType?: "website" | "article";
   publishedAt?: Date;
+  ogImage?: { url: URL; alt: string };
 }
 
-const { title, description = siteDescription, ogType = "website", publishedAt } = Astro.props;
+const { title, description = siteDescription, ogType = "website", publishedAt, ogImage } = Astro.props;
 const pageTitle = title ? `${title} | ${siteName}` : siteName;
 const ogTitle = title ?? siteName;
 const pathname = Astro.url.pathname.replace(/\.html$/, "").replace(/\/$/, "") || "/";
@@ -34,9 +36,18 @@ const feedUrl = new URL("/feed.xml", Astro.site);
     <meta property="og:url" content={canonical.href} />
     <meta property="og:locale" content="ja_JP" />
     {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
-    <meta name="twitter:card" content="summary" />
+    {ogImage && (
+      <>
+        <meta property="og:image" content={ogImage.url.href} />
+        <meta property="og:image:width" content={String(OG_IMAGE_WIDTH)} />
+        <meta property="og:image:height" content={String(OG_IMAGE_HEIGHT)} />
+        <meta property="og:image:alt" content={ogImage.alt} />
+      </>
+    )}
+    <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage.url.href} />}
   </head>
   <body class="min-h-screen bg-slate-50 text-slate-900">
     <header class="border-b border-slate-200 bg-white" data-pagefind-ignore>
