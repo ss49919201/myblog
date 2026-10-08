@@ -1,0 +1,12 @@
+---
+import PostList from "../components/PostList.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { publishedPosts } from "../lib/posts";
+import { siteDescription } from "../lib/site";
+
+const posts = await publishedPosts();
+---
+
+<BaseLayout description={siteDescription}>
+  <PostList posts={posts} />
+</BaseLayout>
