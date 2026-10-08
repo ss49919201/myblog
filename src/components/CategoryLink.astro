@@ -1,0 +1,16 @@
+---
+interface Props {
+  category: { slug: string; name: string } | null;
+}
+
+const { category } = Astro.props;
+---
+
+{
+  category && (
+    <a
+      href={`/categories/${category.slug}`}
+      class="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-300"
+    >{category.name}</a>
+  )
+}

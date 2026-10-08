@@ -1,0 +1,44 @@
+---
+import type { CollectionEntry } from "astro:content";
+import CategoryLink from "./CategoryLink.astro";
+import { formatDate } from "../lib/format";
+import { categoryOf } from "../lib/posts";
+
+interface Props {
+  posts: CollectionEntry<"posts">[];
+}
+
+const { posts } = Astro.props;
+const items = await Promise.all(
+  posts.map(async (post) => ({
+    post,
+    category: await categoryOf(post),
+  })),
+);
+---
+
+{
+  items.length === 0 ? (
+    <p class="text-slate-500">まだ記事がありません。</p>
+  ) : (
+    <ul class="flex flex-col gap-6">
+      {items.map(({ post, category }) => (
+        <li>
+          <article>
+            <div class="flex items-center gap-3">
+              <time class="text-sm text-slate-500" datetime={post.data.date.toISOString()}>
+                {formatDate(post.data.date)}
+              </time>
+              <CategoryLink category={category} />
+            </div>
+            <h2 class="mt-1 text-2xl font-semibold">
+              <a href={`/posts/${post.data.slug}`} class="hover:underline">
+                {post.data.title}
+              </a>
+            </h2>
+          </article>
+        </li>
+      ))}
+    </ul>
+  )
+}

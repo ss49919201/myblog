@@ -9,10 +9,7 @@ cmd
 # Build / local state
 .env*
 .dev.vars*
-.next
-next-env.d.ts
-/dist/
-.vinext/
-.cloudflare/
+dist/
+.astro/
 .wrangler/
 *.tsbuildinfo
