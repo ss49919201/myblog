@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -178,5 +179,138 @@ func TestPostFieldsMatchContentConfig(t *testing.T) {
 		if names[i] != f.key || required[i] != f.required {
 			t.Fatalf("field %d: config %s required=%v, postFields %s required=%v", i, names[i], required[i], f.key, f.required)
 		}
+	}
+}
+
+func newTree(t *testing.T, files map[string]string) string {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "src"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "src", "content.config.ts"), []byte("// marker\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "src", "content", "categories"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "src", "content", "posts"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for path, body := range files {
+		full := filepath.Join(root, filepath.FromSlash(path))
+		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(full, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return root
+}
+
+func TestCheckEmptyPosts(t *testing.T) {
+	root := newTree(t, map[string]string{
+		"src/content/categories/news.md": "---\nname: お知らせ\n---\n",
+	})
+	probs, err := Check(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(probs) != 0 {
+		t.Fatal(probs)
+	}
+}
+
+func TestCheckFrontmatterFailures(t *testing.T) {
+	root := newTree(t, map[string]string{
+		"src/content/categories/news.md": "---\nname: お知らせ\n---\n",
+		"src/content/posts/a.md":       "---\ntitle: t\nslug: a\ndate: 2026-10-03\ndraft: yes\n---\n",
+		"src/content/posts/b.md":         "---\ntitle: true\nslug: b\ndate: 2026-10-03\ndraft: false\n---\n",
+		"src/content/posts/c.md":         "---\ntitle: \"\"\nslug: c\ndate: 2026-10-03\ndraft: false\n---\n",
+		"src/content/posts/d.md":         "---\ntitle: t\nslug: d\ndate: 2026\ndraft: false\n---\n",
+		"src/content/posts/e.md":         "---\ntitle: t\nslug: e\ndate: 2026-10-03\ncatgory: news\ndraft: false\n---\n",
+	})
+	probs, err := Check(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(probs) == 0 {
+		t.Fatal("expected problems")
+	}
+	want := []string{
+		"src/content/posts/a.md: draft: 真偽値が必要です。\"yes\"（!!str）でした",
+		"src/content/posts/b.md: title: 文字列が必要です。\"true\"（!!bool）でした",
+		"src/content/posts/d.md: date: 日付が必要です。\"2026\"（!!int）でした",
+		"src/content/posts/e.md: 不明なキー \"catgory\" です。記事のキーは title、slug、date、category、draft です",
+	}
+	for _, w := range want {
+		if !slices.ContainsFunc(probs, func(p Problem) bool { return p.String() == w }) {
+			t.Fatalf("missing %q in %v", w, probs)
+		}
+	}
+}
+
+func TestCheckDuplicateSlugAndCategory(t *testing.T) {
+	root := newTree(t, map[string]string{
+		"src/content/categories/news.md": "---\nname: お知らせ\n---\n",
+		"src/content/posts/hello.md":     "---\ntitle: A\nslug: hello\ndate: 2026-10-03T00:00:00Z\ndraft: true\n---\n",
+		"src/content/posts/world.md":   "---\ntitle: B\nslug: hello\ndate: 2026-10-03T00:00:00Z\ndraft: false\n---\n",
+		"src/content/posts/c.md":         "---\ntitle: C\nslug: c\ndate: 2026-10-03T00:00:00Z\ncategory: tech\ndraft: false\n---\n",
+	})
+	probs, err := Check(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dupA := "src/content/posts/hello.md: slug \"hello\" は src/content/posts/world.md でも使われています"
+	dupB := "src/content/posts/world.md: slug \"hello\" は src/content/posts/hello.md でも使われています"
+	path := "src/content/posts/world.md: slug \"hello\" のファイルは src/content/posts/hello.md である必要があります"
+	miss := "src/content/posts/c.md: カテゴリ \"tech\" のファイル src/content/categories/tech.md がありません"
+	for _, w := range []string{dupA, dupB, path, miss} {
+		if !slices.ContainsFunc(probs, func(p Problem) bool { return p.String() == w }) {
+			t.Fatalf("missing %q in %v", w, probs)
+		}
+	}
+}
+
+func TestCreateRefusesDuplicateAndRewrites(t *testing.T) {
+	root := newTree(t, map[string]string{
+		"src/content/categories/news.md":  "---\nname: お知らせ\n---\n",
+		"src/content/posts/2026/hello.md": "---\ntitle: Old\nslug: hello\ndate: 2026-10-01T00:00:00Z\ndraft: true\n---\n",
+	})
+	slug, _ := ParseSlug("hello")
+	date, _ := ParseDate("2026-10-09T07:09:00+09:00")
+	_, err := Create(root, Post{Title: "New", Slug: slug, Date: date, Draft: true})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	want := "src/content/posts/hello.md の作成を拒否します:\n  src/content/posts/hello.md: slug \"hello\" は src/content/posts/2026/hello.md でも使われています"
+	if err.Error() != want {
+		t.Fatalf("got %q want %q", err.Error(), want)
+	}
+	if err := os.Remove(filepath.Join(root, "src/content/posts/2026/hello.md")); err != nil {
+		t.Fatal(err)
+	}
+	diary, _ := ParseSlug("日記")
+	path, err := Create(root, Post{Title: "公開", Slug: diary, Date: date, Draft: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if path != "src/content/posts/日記.md" {
+		t.Fatalf("path %q", path)
+	}
+	_, err = Create(root, Post{Title: "Again", Slug: diary, Date: date, Draft: true})
+	if err == nil {
+		t.Fatal("expected exists error")
+	}
+	if !strings.Contains(err.Error(), "は既にあります") {
+		t.Fatal(err)
+	}
+	after, _ := os.ReadFile(filepath.Join(root, "src/content/posts/日記.md"))
+	if !strings.Contains(string(after), "slug: 日記") {
+		t.Fatalf("bytes %q", after)
+	}
+	probs, err := Check(root)
+	if err != nil || len(probs) != 0 {
+		t.Fatalf("check %v %v", probs, err)
 	}
 }
