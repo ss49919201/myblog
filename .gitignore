@@ -4,9 +4,8 @@
 # Dependency directories
 node_modules/
 
-cmd
-
 # Build / local state
+/blog
 .env*
 .dev.vars*
 dist/
