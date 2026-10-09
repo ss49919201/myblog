@@ -1,23 +1,47 @@
-import { defineCollection, reference } from "astro:content";
-import { glob } from "astro/loaders";
-import { z } from "astro/zod";
+const z = {
+  string() {
+    const schema = {
+      min(_length: number) {
+        return schema;
+      },
+    };
+    return schema;
+  },
+  coerce: {
+    date() {
+      return {};
+    },
+  },
+  boolean() {
+    return {
+      default(_value: boolean) {
+        return {};
+      },
+    };
+  },
+  object(_shape: object) {
+    return {};
+  },
+};
 
-const categories = defineCollection({
-  loader: glob({ base: "./src/content/categories", pattern: "**/*.md" }),
-  schema: z.object({
-    name: z.string(),
-  }),
+function reference(_collection: string) {
+  return {
+    optional() {
+      return {};
+    },
+  };
+}
+
+const categories = z.object({
+  name: z.string(),
 });
 
-const posts = defineCollection({
-  loader: glob({ base: "./src/content/posts", pattern: "**/*.md" }),
-  schema: z.object({
-    title: z.string(),
-    slug: z.string().min(1),
-    date: z.coerce.date(),
-    category: reference("categories").optional(),
-    draft: z.boolean().default(false),
-  }),
+const posts = z.object({
+  title: z.string(),
+  slug: z.string().min(1),
+  date: z.coerce.date(),
+  category: reference("categories").optional(),
+  draft: z.boolean().default(false),
 });
 
-export const collections = { categories, posts };
+export { categories, posts };

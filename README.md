@@ -1,16 +1,21 @@
 # myblog
 
-[Astro](https://astro.build) でビルド時に静的生成するブログです。ホスティングは Cloudflare Workers の静的アセットです。
+Hono で配信するブログです。記事は Markdown のままリポジトリに置きます。公開時にその内容を SQLite へ載せ、Cloudflare Workers と D1 が読みます。スキーマは [sqldef](https://github.com/sqldef/sqldef) の `sqlite3def` が `db/schema.sql` に合わせます。
+
+入稿コマンド `blog` は Go のままです。
+
+## ページ
 
 - `/` 公開記事一覧
 - `/posts/:slug` 記事
 - `/categories/:slug` カテゴリ別の公開記事一覧
-- `/search` [Pagefind](https://pagefind.app) によるクライアント側検索
 - `/feed.xml` RSS
-- `/sitemap-index.xml` サイトマップ
+- `/sitemap.xml` サイトマップ
 - `/robots.txt`
 
-下書き（`draft: true`）と、`date` がビルド時刻より未来の記事はページを生成しません。一覧、カテゴリ、検索、RSS、サイトマップにも出ません。公開予約は、日付を過ぎてからビルドし直すことで反映します。
+`draft: true` の記事と、`date` が現在より未来の記事は、一覧、記事ページ、カテゴリ、RSS、サイトマップに出ません。未来の記事は日付を過ぎると、Worker をデプロイし直さなくても出ます。本文や frontmatter を変えたときは、データベースへ載せ直してください。
+
+検索ページと OGP 画像はありません。タイトルと説明の Open Graph タグは残しています。
 
 ## 記事とカテゴリ
 
@@ -22,7 +27,7 @@
 title: Hello, world
 slug: hello-world
 date: 2026-10-03T00:00:00.000Z
-category: news # src/content/categories/<id>.md。省略可
+category: news
 draft: false
 ```
 
@@ -31,9 +36,10 @@ draft: false
 カテゴリのファイル名（拡張子を除いたもの）が `/categories/<slug>` になります。
 
 ```yaml
-# src/content/categories/news.md
 name: お知らせ
 ```
+
+`src/content.config.ts` は記事キーの一覧です。`blog check` は、このファイルがリポジトリのルートにあることを確認します。
 
 ## 入稿 CLI
 
@@ -61,9 +67,17 @@ go run ./cmd/blog check
 
 CI では `go vet`、`go test -race`、`go run ./cmd/blog check`、および `golang.org/x/tools/cmd/deadcode` を実行します（`.github/workflows/go.yml`）。
 
+## データベース
+
+`db/schema.sql` が望む状態です。テーブルは `categories` と `posts` です。`posts` には下書きと未来の記事も入り、表示するかどうかはリクエストの時刻で決めます。
+
+ローカルのファイルは `db/blog.sqlite` です。初回の `npm run dev` または `npm run db:sync` が、sqlite3def 3.11.3 を `.tools/` にダウンロードします。
+
+D1 へ載せるコマンドは `npm run db:push` です。ローカルの D1 へ載せるときは `npm run db:push -- --local` です。どちらも、いまの D1 スキーマと `db/schema.sql` の差分を sqlite3def で作り、そのあと記事を入れ替えます。同じコマンドを続けて実行しても結果は同じです。
+
 ## 必要条件
 
-Node.js 22.12 以上（`.nvmrc` は 22.14.0）。
+Node.js 22.12 以上（`.nvmrc` は 22.14.0）。Go の入稿には Go 1.22 以上。
 
 ## ローカル開発
 
@@ -72,34 +86,32 @@ npm ci
 npm run dev
 ```
 
-開発サーバーでは Pagefind の索引が無いため、検索結果は出ません。検索を確認するときはビルドしてプレビューします。
+`http://localhost:8787` で開きます。正規 URL、RSS、サイトマップのオリジンは環境変数 `SITE` です。未設定時は `https://example.com` です。
+
+Workers ランタイムとローカル D1 で見るときは、次を実行します。
 
 ```sh
-npm run build
 npm run preview
 ```
 
 ## 本番 URL
 
-正規 URL、OGP、RSS、サイトマップは `astro.config.ts` の `site` を使います。未設定時は環境変数 `SITE`、それも無いときは `https://example.com` です。デプロイ前に本番のオリジンへ変えてください。
-
-```sh
-SITE=https://myblog.example npm run build
-```
+`wrangler.jsonc` の `vars.SITE` が本番のオリジンです。デプロイ前に書き換えてください。
 
 ## デプロイ
 
-Cloudflare Workers の静的アセットとして配信します。Worker のスクリプト、D1、画像バインディングはありません。
-
 1. `npx wrangler login`
-2. 必要なら `wrangler.jsonc` の `name` を変える
-3. `SITE` を本番オリジンにして `npm run deploy`
+2. `npx wrangler d1 create myblog`
+3. 表示された `database_id` を `wrangler.jsonc` に書く
+4. `vars.SITE` を本番オリジンにする
+5. `npm run deploy`
 
-`npm run deploy` はビルド（Pagefind の索引作成を含む）のあと `wrangler deploy` します。不明なパスは `dist/404.html` を 404 で返します。
+`npm run deploy` はリモート D1 にスキーマと記事を載せてから Worker をデプロイします。記事だけの変更は `npm run db:push` で足ります。
 
 ## チェック
 
 ```sh
 npm run typecheck
+npm test
 npm run knip
 ```

@@ -1,14 +1,13 @@
-# MacOS
 .DS_Store
 
-# Dependency directories
 node_modules/
 
-# Build / local state
 /blog
 .env*
 .dev.vars*
 dist/
 .astro/
 .wrangler/
+.tools/
+db/*.sqlite
 *.tsbuildinfo

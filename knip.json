@@ -1,4 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6.40.0/schema.json",
-  "ignore": [".cursor/**"]
+  "ignore": ["src/content.config.ts"],
+  "entry": ["test/**/*.ts"],
+  "project": ["src/**/*.ts", "test/**/*.ts"]
 }
