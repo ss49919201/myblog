@@ -35,6 +35,32 @@ draft: false
 name: お知らせ
 ```
 
+## 入稿 CLI
+
+リポジトリのルートで実行します。Go 1.22 以上が必要です。
+
+```sh
+go run ./cmd/blog new -title "Hello, world" -slug hello-world -category news
+go run ./cmd/blog new -title "公開のお知らせ" -slug launch -date 2026-10-10T09:00:00+09:00 -draft=false
+go run ./cmd/blog check
+```
+
+`blog new` は `src/content/posts/<slug>.md` に雛形を書き、そのパスを標準出力に出します。`-draft` の既定は `true` です。`-draft=false` で下書きを外します。`-date` を省くと、ローカルのタイムゾーンで秒未満を切り捨てた現在時刻を書きます。`-category` を省くと `category` キーを書きません。同じ slug のファイルが既にあるとき、相手が下書きでも作りません。2回目は最初のファイルを変えません。
+
+`blog check` は記事が 0 件でも成功します。問題があるときは 1 行に 1 件を標準出力に書き、終了コード 1 で終わります。問題が無いときは何も書かず、終了コード 0 です。使い方が違うときは終了コード 2 です。
+
+検証する規則:
+
+- キーは `title` `slug` `date` `category` `draft` だけです。`title` `slug` `date` は必須です。`draft` を省くと false です
+- `title: ""` は通ります。`title:` と `title: true` は通りません。`draft: true` と `draft: TRUE` は通ります。`draft: yes` は通りません
+- `slug` は空でない 1 つのパス要素です。`.` と `..`、`/`、`\`、NUL は使えません。`日記` は使えます
+- ファイルは `src/content/posts/<slug>.md` です
+- `date` は `2006-01-02`、ゾーン無しの `2006-01-02T15:04:05`（UTC）、または `Z` か数値オフセット付きの RFC3339 です。`date: 2026` は通りません
+- slug の重複は下書きも含めて失敗します
+- `category` を書くときは `src/content/categories/<category>.md` が必要です。id はファイル名から取り、`name` は見ません
+
+CI では `go vet`、`go test -race`、`go run ./cmd/blog check`、および `golang.org/x/tools/cmd/deadcode` を実行します（`.github/workflows/go.yml`）。
+
 ## 必要条件
 
 Node.js 22.12 以上（`.nvmrc` は 22.14.0）。
