@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { BRAND_ACCENT } from "../lib/brand";
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "../lib/og/constants";
 import { siteDescription, siteName } from "../lib/site";
 
@@ -48,9 +49,11 @@ const feedUrl = new URL("/feed.xml", Astro.site);
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={description} />
     {ogImage && <meta name="twitter:image" content={ogImage.url.href} />}
+    <style is:global set:html={`:root { --brand-accent: ${BRAND_ACCENT}; }`}></style>
   </head>
   <body class="min-h-screen bg-slate-50 text-slate-900">
-    <header class="border-b border-slate-200 bg-white" data-pagefind-ignore>
+    <div class="h-0.5 bg-brand-accent" aria-hidden="true"></div>
+    <header class="border-b border-brand-accent/70 bg-white" data-pagefind-ignore>
       <div class="mx-auto flex max-w-3xl items-center justify-between gap-4 px-6 py-4">
         <a href="/" class="text-xl font-bold tracking-tight">{siteName}</a>
         <form action="/search" method="get" role="search">

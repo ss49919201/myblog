@@ -21,9 +21,9 @@ const items = await Promise.all(
   items.length === 0 ? (
     <p class="text-slate-500">まだ記事がありません。</p>
   ) : (
-    <ul class="flex flex-col gap-6">
+    <ul class="flex flex-col divide-y divide-brand-accent/40">
       {items.map(({ post, category }) => (
-        <li>
+        <li class="first:pt-0 py-6">
           <article>
             <div class="flex items-center gap-3">
               <time class="text-sm text-slate-500" datetime={post.data.date.toISOString()}>
