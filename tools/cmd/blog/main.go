@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ss49919201/myblog/internal/content"
+	"github.com/ss49919201/myblog/tools/internal/content"
 )
 
 const (

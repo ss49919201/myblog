@@ -1,4 +1,4 @@
-module github.com/ss49919201/myblog
+module github.com/ss49919201/myblog/tools
 
 go 1.22
 
