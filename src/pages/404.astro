@@ -1,8 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { siteOgImageUrl } from "../lib/og/urls";
+import { siteName } from "../lib/site";
+
+const ogImage = { url: siteOgImageUrl(Astro.site), alt: siteName };
 ---
 
-<BaseLayout title="ページが見つかりません" description="ページが見つかりません">
+<BaseLayout title="ページが見つかりません" description="ページが見つかりません" ogImage={ogImage}>
   <div class="text-center">
     <h1 class="text-2xl font-bold">ページが見つかりません</h1>
     <a href="/" class="mt-4 inline-block text-sm text-slate-600 underline">トップへ戻る</a>

@@ -1,12 +1,14 @@
 ---
 import PostList from "../components/PostList.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { siteOgImageUrl } from "../lib/og/urls";
 import { publishedPosts } from "../lib/posts";
-import { siteDescription } from "../lib/site";
+import { siteDescription, siteName } from "../lib/site";
 
 const posts = await publishedPosts();
+const ogImage = { url: siteOgImageUrl(Astro.site), alt: siteName };
 ---
 
-<BaseLayout description={siteDescription}>
+<BaseLayout description={siteDescription} ogImage={ogImage}>
   <PostList posts={posts} />
 </BaseLayout>
