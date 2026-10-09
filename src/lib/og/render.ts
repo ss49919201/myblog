@@ -2,7 +2,7 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 
 import { postOgCardElement, siteOgCardElement } from "./card";
-import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./constants";
+import { OG_BORDER_COLOR, OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./constants";
 import { ogFonts } from "./fonts";
 
 async function renderOgPng(element: ReturnType<typeof postOgCardElement> | ReturnType<typeof siteOgCardElement>): Promise<Buffer> {
@@ -15,7 +15,7 @@ async function renderOgPng(element: ReturnType<typeof postOgCardElement> | Retur
   });
   const resvg = new Resvg(svg, {
     fitTo: { mode: "width", value: OG_IMAGE_WIDTH },
-    background: "#f8fafc",
+    background: OG_BORDER_COLOR,
   });
   return resvg.render().asPng();
 }
