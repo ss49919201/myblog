@@ -1,10 +1,13 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { siteOgImageUrl } from "../lib/og/urls";
+import { siteName } from "../lib/site";
 
 const description = "記事のタイトルと本文を検索します。";
+const ogImage = { url: siteOgImageUrl(Astro.site), alt: siteName };
 ---
 
-<BaseLayout title="検索" description={description}>
+<BaseLayout title="検索" description={description} ogImage={ogImage}>
   <h1 class="text-3xl font-bold">検索</h1>
   <div class="mt-6" data-pagefind-ignore>
     <pagefind-config bundle-path="/pagefind/" lang="ja"></pagefind-config>

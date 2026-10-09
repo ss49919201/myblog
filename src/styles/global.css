@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@theme {
+  --color-brand-accent: var(--brand-accent);
+}
+
 :root {
   color-scheme: light;
   font-family:
@@ -37,4 +41,8 @@ pagefind-results {
 pagefind-summary,
 pagefind-results {
   margin-top: 1.5rem;
+}
+
+.prose blockquote {
+  border-left-color: var(--brand-accent);
 }
