@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:test'
+import { inject } from 'vitest'
 
 export type TestPostRow = {
   slug: string
@@ -32,7 +33,7 @@ export async function insertPost(row: TestPostRow): Promise<void> {
 
 export async function recreatePostsTable(): Promise<void> {
   await env.DB.prepare('DROP TABLE IF EXISTS posts').run()
-  for (const migration of env.TEST_MIGRATIONS) {
+  for (const migration of inject('testMigrations')) {
     for (const query of migration.queries) {
       await env.DB.prepare(query).run()
     }

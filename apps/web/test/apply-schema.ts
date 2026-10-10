@@ -1,8 +1,8 @@
 import { applyD1Migrations, env } from 'cloudflare:test'
-import { beforeAll, beforeEach } from 'vitest'
+import { beforeAll, beforeEach, inject } from 'vitest'
 
 beforeAll(async () => {
-  await applyD1Migrations(env.DB, env.TEST_MIGRATIONS)
+  await applyD1Migrations(env.DB, inject('testMigrations'))
 })
 
 beforeEach(async () => {

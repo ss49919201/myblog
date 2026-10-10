@@ -12,19 +12,17 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc' },
-      miniflare: {
-        bindings: {
-          TEST_MIGRATIONS: [
-            {
-              name: '0000_schema.sql',
-              queries: unstable_splitSqlQuery(schemaSql),
-            },
-          ],
-        },
-      },
     }),
   ],
   test: {
+    provide: {
+      testMigrations: [
+        {
+          name: '0000_schema.sql',
+          queries: unstable_splitSqlQuery(schemaSql),
+        },
+      ],
+    },
     setupFiles: ['./test/apply-schema.ts'],
   },
 })
