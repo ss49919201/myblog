@@ -13,33 +13,19 @@ function bodyParagraphs(body: string): string[] {
 
 export const PostPage: FC<PostPageProps> = ({ post }) => (
   <Layout title={`${post.title} | myblog`}>
-    <article>
-      <h1 style={{ fontSize: '1.75rem', marginTop: 0, lineHeight: 1.3 }}>
-        {post.title}
-      </h1>
-      <p style={{ margin: '0 0 1.5rem', color: '#6b7280', fontSize: '0.9rem' }}>
-        <time dateTime={post.publishedAt.toISOString()}>
+    <article class="article">
+      <h1 class="article-title">{post.title}</h1>
+      <p class="article-meta">
+        <time class="date-pill" dateTime={post.publishedAt.toISOString()}>
           {formatPublishedAt(post.publishedAt)}
         </time>
       </p>
-      <div
-        style={{
-          borderTop: '1px solid #c4b5fd',
-          paddingTop: '1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-        }}
-      >
+      <div class="article-body">
         {bodyParagraphs(post.body).map((paragraph) => (
-          <p key={paragraph.slice(0, 24)} style={{ margin: 0 }}>
-            {paragraph}
-          </p>
+          <p key={paragraph.slice(0, 24)}>{paragraph}</p>
         ))}
       </div>
-      <p style={{ marginTop: '2rem' }}>
-        <a href="/">← 一覧へ</a>
-      </p>
+      <a class="back-link" href="/">← 一覧へ</a>
     </article>
   </Layout>
 )
