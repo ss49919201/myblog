@@ -96,6 +96,8 @@ pnpm --filter @myblog/web test
 pnpm --filter @myblog/web run db:schema:check
 ```
 
+テストは `@cloudflare/vitest-pool-workers` で Workers ランタイム上の D1 バインディングを使います。`schema.sql` は `applyD1Migrations` で一度適用し、各テストは `DELETE FROM posts` のあと必要な行だけ INSERT します。
+
 ## ルート
 
 | パス | 内容 |

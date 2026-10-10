@@ -20,9 +20,12 @@
     "neverthrow": "8.2.0"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.23.0",
     "@cloudflare/workers-types": "5.20261009.1",
+    "@vitest/runner": "4.1.11",
+    "@vitest/snapshot": "4.1.11",
     "typescript": "6.0.3",
-    "vitest": "5.0.3",
+    "vitest": "4.1.11",
     "wrangler": "4.149.0"
   },
   "sqldefVersion": "v3.11.26"
