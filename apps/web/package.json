@@ -6,7 +6,14 @@
   "scripts": {
     "dev": "wrangler dev",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:local:touch": "wrangler d1 execute myblog-web --local --command \"SELECT 1\"",
+    "db:local:plan": "wrangler d1 export myblog-web --local --no-data --output /tmp/myblog-web-local-current.sql && sqlite3def /tmp/myblog-web-local-current.sql -f schema.sql --dry-run",
+    "db:local:apply": "wrangler d1 export myblog-web --local --no-data --output /tmp/myblog-web-local-current.sql && sqlite3def /tmp/myblog-web-local-current.sql -f schema.sql --dry-run | grep -vE '^(-- dry run --|BEGIN;|COMMIT;)$' > /tmp/myblog-web-local-migrate.sql && if [ -s /tmp/myblog-web-local-migrate.sql ]; then wrangler d1 execute myblog-web --local --file /tmp/myblog-web-local-migrate.sql; else echo 'schema already matches'; fi",
+    "db:local:seed": "wrangler d1 execute myblog-web --local --file seed.sql",
+    "db:remote:plan": "wrangler d1 export myblog-web --remote --no-data --output /tmp/myblog-web-current.sql && sqlite3def /tmp/myblog-web-current.sql -f schema.sql --dry-run",
+    "db:remote:apply": "wrangler d1 export myblog-web --remote --no-data --output /tmp/myblog-web-current.sql && sqlite3def /tmp/myblog-web-current.sql -f schema.sql --dry-run | grep -vE '^(-- dry run --|BEGIN;|COMMIT;)$' > /tmp/myblog-web-migrate.sql && if [ -s /tmp/myblog-web-migrate.sql ]; then wrangler d1 execute myblog-web --remote --file /tmp/myblog-web-migrate.sql; else echo 'schema already matches'; fi",
+    "db:schema:check": "rm -f /tmp/myblog-web-schema-check.sqlite && sqlite3def /tmp/myblog-web-schema-check.sqlite --apply -f schema.sql && sqlite3def /tmp/myblog-web-schema-check.sqlite -f schema.sql --check"
   },
   "dependencies": {
     "hono": "4.13.13",
@@ -17,5 +24,6 @@
     "typescript": "6.0.3",
     "vitest": "5.0.3",
     "wrangler": "4.149.0"
-  }
+  },
+  "sqldefVersion": "v3.11.26"
 }

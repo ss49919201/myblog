@@ -30,5 +30,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install sqlite3def
+        run: |
+          curl -sL https://github.com/sqldef/sqldef/releases/download/v3.11.26/sqlite3def_linux_amd64.tar.gz | tar xz
+          sudo mv sqlite3def /usr/local/bin/
       - run: pnpm --filter @myblog/web typecheck
       - run: pnpm --filter @myblog/web test
+      - run: pnpm --filter @myblog/web run db:schema:check

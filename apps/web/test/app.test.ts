@@ -1,11 +1,14 @@
-import { err } from 'neverthrow'
+import { errAsync } from 'neverthrow'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import app from '../src/app'
 import * as repository from '../src/posts/repository'
+import { createMockD1, seedPostRows } from './mock-d1'
+
+const testEnv = { DB: createMockD1(seedPostRows) }
 
 describe('blog routes', () => {
   it('GET / returns 200 and lists posts newest first', async () => {
-    const res = await app.request('/')
+    const res = await app.request('/', {}, testEnv)
     expect(res.status).toBe(200)
     const html = await res.text()
     expect(html).toContain('記事一覧')
@@ -17,7 +20,7 @@ describe('blog routes', () => {
   })
 
   it('GET /posts/:slug returns 200 for an existing post', async () => {
-    const res = await app.request('/posts/hello-hono')
+    const res = await app.request('/posts/hello-hono', {}, testEnv)
     expect(res.status).toBe(200)
     const html = await res.text()
     expect(html).toContain('Hono JSX で SSR を始める')
@@ -25,7 +28,7 @@ describe('blog routes', () => {
   })
 
   it('GET /posts/:slug returns 404 for a missing post', async () => {
-    const res = await app.request('/posts/does-not-exist')
+    const res = await app.request('/posts/does-not-exist', {}, testEnv)
     expect(res.status).toBe(404)
     const html = await res.text()
     expect(html).toContain('ページが見つかりません')
@@ -39,9 +42,9 @@ describe('blog routes when storage fails', () => {
 
   it('GET / returns 500 when listPosts fails', async () => {
     vi.spyOn(repository, 'listPosts').mockReturnValue(
-      err({ type: 'StorageError', cause: new Error('stub') }),
+      errAsync({ type: 'StorageError', cause: new Error('stub') }),
     )
-    const res = await app.request('/')
+    const res = await app.request('/', {}, testEnv)
     expect(res.status).toBe(500)
     const html = await res.text()
     expect(html).toContain('サーバーエラー')
@@ -49,9 +52,9 @@ describe('blog routes when storage fails', () => {
 
   it('GET /posts/:slug returns 500 when getPost fails with StorageError', async () => {
     vi.spyOn(repository, 'getPost').mockReturnValue(
-      err({ type: 'StorageError', cause: new Error('stub') }),
+      errAsync({ type: 'StorageError', cause: new Error('stub') }),
     )
-    const res = await app.request('/posts/hello-hono')
+    const res = await app.request('/posts/hello-hono', {}, testEnv)
     expect(res.status).toBe(500)
     const html = await res.text()
     expect(html).toContain('サーバーエラー')
