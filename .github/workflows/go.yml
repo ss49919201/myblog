@@ -2,7 +2,13 @@ name: go
 
 on:
   push:
+    paths:
+      - 'tools/**'
+      - '.github/workflows/go.yml'
   pull_request:
+    paths:
+      - 'tools/**'
+      - '.github/workflows/go.yml'
 
 permissions:
   contents: read
@@ -12,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        shell: bash # deadcode exits 0 when it prints a finding, so awk fails the step
+        working-directory: tools
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: tools/go.mod
       - run: go vet ./cmd/... ./internal/...
       - run: go test -race ./cmd/... ./internal/...
-      - run: go run ./cmd/blog check
       - run: GOTOOLCHAIN=auto go run golang.org/x/tools/cmd/deadcode@v0.51.0 ./cmd/... ./internal/... | awk '{ print } END { exit NR > 0 }'

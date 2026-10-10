@@ -1,6 +1,7 @@
 package content
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -136,7 +137,11 @@ func TestRenderRoundTrip(t *testing.T) {
 // Go cannot derive postFields from the TypeScript schema, so this test fails
 // the build when the key names, order, or required-ness disagree.
 func TestPostFieldsMatchContentConfig(t *testing.T) {
-	src, err := os.ReadFile(filepath.Join("..", "..", "src", "content.config.ts"))
+	configPath := filepath.Join("..", "..", "src", "content.config.ts")
+	src, err := os.ReadFile(configPath)
+	if errors.Is(err, os.ErrNotExist) {
+		t.Skip("src/content.config.ts がありません。記事は apps/web の D1 を参照してください")
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -443,6 +448,9 @@ func TestCheckRepo(t *testing.T) {
 	root, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "src", "content.config.ts")); errors.Is(err, os.ErrNotExist) {
+		t.Skip("src/content.config.ts がありません。記事は apps/web の D1 を参照してください")
 	}
 	probs, err := Check(root)
 	if err != nil {
