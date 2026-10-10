@@ -1,0 +1,5 @@
+{
+  "name": "myblog",
+  "private": true,
+  "packageManager": "pnpm@12.10.1"
+}
