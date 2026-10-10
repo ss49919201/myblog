@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -70,9 +71,22 @@ func TestRun(t *testing.T) {
 	}
 
 	code, stdout, stderr = runCmd(root)
-	const usageText = "使い方: blog <command> [flags]\n  new  記事の雛形を src/content/posts/<slug>.md に書きます\n  check  記事の frontmatter を検証します\nリポジトリのルートで実行してください。\n"
+	const usageText = "使い方: blog <command> [flags]\n  new  記事の雛形を src/content/posts/<slug>.md に書きます\n  check  記事の frontmatter を検証します\n  sync  Markdown を HTML に変換して D1 の posts に upsert します\nリポジトリのルートで実行してください。\n"
 	if code != 2 || stdout != "" || stderr != usageText {
 		t.Fatalf("usage code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+
+	mdPath := filepath.Join(root, "post.md")
+	const sample = "---\ntitle: Sync\nslug: sync-test\npublished_at: 2026-10-03T00:00:00Z\n---\n\n**hi**\n"
+	if err := os.WriteFile(mdPath, []byte(sample), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, stdout, stderr = runCmd(root, "sync", "--dry-run", mdPath)
+	if code != 0 || stderr != "" {
+		t.Fatalf("sync dry-run code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+	if !strings.Contains(stdout, "--- html ---") || !strings.Contains(stdout, "<strong>hi</strong>") {
+		t.Fatalf("sync dry-run stdout=%q", stdout)
 	}
 }
 

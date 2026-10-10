@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -8,6 +9,8 @@ import (
 	"time"
 
 	"github.com/ss49919201/myblog/tools/internal/content"
+	"github.com/ss49919201/myblog/tools/internal/d1client"
+	syncposts "github.com/ss49919201/myblog/tools/internal/sync"
 )
 
 const (
@@ -25,6 +28,7 @@ type command struct {
 var commands = []command{
 	{"new", "記事の雛形を src/content/posts/<slug>.md に書きます", runNew},
 	{"check", "記事の frontmatter を検証します", runCheck},
+	{"sync", "Markdown を HTML に変換して D1 の posts に upsert します", runSync},
 }
 
 func main() {
@@ -89,6 +93,38 @@ func runNew(root string, args []string, stdout, stderr io.Writer) int {
 		return exitFailed
 	}
 	fmt.Fprintln(stdout, path)
+	return exitOK
+}
+
+func runSync(_ string, args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("sync", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	accountID := fs.String("account-id", os.Getenv("CLOUDFLARE_ACCOUNT_ID"), "Cloudflare アカウント ID")
+	databaseID := fs.String("database-id", os.Getenv("CLOUDFLARE_D1_DATABASE_ID"), "D1 データベース ID")
+	apiToken := fs.String("api-token", os.Getenv("CLOUDFLARE_API_TOKEN"), "Cloudflare API トークン")
+	dryRun := fs.Bool("dry-run", false, "HTML と SQL を表示するだけで D1 には書き込まない")
+	if err := fs.Parse(args); err != nil {
+		return exitUsage
+	}
+	paths := fs.Args()
+	if len(paths) == 0 {
+		fmt.Fprintln(stderr, "blog sync は Markdown ファイルを1つ以上指定してください")
+		return exitUsage
+	}
+	if !*dryRun {
+		if *accountID == "" || *databaseID == "" || *apiToken == "" {
+			fmt.Fprintln(stderr, "blog sync: --account-id、--database-id、--api-token（または同名の環境変数）が必要です")
+			return exitUsage
+		}
+	}
+	pub := syncposts.Publisher{Stdout: stdout}
+	if !*dryRun {
+		pub.Client = d1client.New(*apiToken, *accountID, *databaseID)
+	}
+	if err := syncposts.PublishFiles(context.Background(), pub, paths, *dryRun); err != nil {
+		fmt.Fprintln(stderr, "blog sync:", err)
+		return exitFailed
+	}
 	return exitOK
 }
 
