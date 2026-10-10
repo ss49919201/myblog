@@ -1,6 +1,8 @@
 module github.com/ss49919201/myblog/tools
 
-go 1.22
+go 1.27
+
+toolchain go1.27.0
 
 require (
 	github.com/adrg/frontmatter v0.2.0
