@@ -1,14 +1,16 @@
 import type { FC } from 'hono/jsx'
+import type { PageMeta } from '../meta'
 import type { Post } from '../posts/types'
 import { formatPublishedAt } from './format'
 import { Layout } from './Layout'
 
 type HomePageProps = {
   posts: Post[]
+  meta: PageMeta
 }
 
-export const HomePage: FC<HomePageProps> = ({ posts }) => (
-  <Layout title="記事一覧 | myblog">
+export const HomePage: FC<HomePageProps> = ({ posts, meta }) => (
+  <Layout title={meta.title} meta={meta}>
     <h1 class="page-heading">記事一覧</h1>
     <ul class="post-list">
       {posts.map((post) => (
