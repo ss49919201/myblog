@@ -6,7 +6,7 @@ type PostRow = {
   slug: string
   title: string
   published_at: string
-  body: string
+  body_html: string
 }
 
 function mapRow(row: PostRow): Post {
@@ -14,7 +14,7 @@ function mapRow(row: PostRow): Post {
     slug: row.slug,
     title: row.title,
     publishedAt: new Date(row.published_at),
-    body: row.body,
+    bodyHtml: row.body_html,
   }
 }
 
@@ -22,7 +22,7 @@ export function listPosts(db: D1Database): ResultAsync<Post[], PostsError> {
   return ResultAsync.fromPromise(
     db
       .prepare(
-        'SELECT slug, title, published_at, body FROM posts ORDER BY published_at DESC',
+        'SELECT slug, title, published_at, body_html FROM posts ORDER BY published_at DESC',
       )
       .all<PostRow>(),
     (cause) => ({ type: 'StorageError', cause }) satisfies PostsError,
@@ -36,7 +36,7 @@ export function getPost(
   return ResultAsync.fromPromise(
     db
       .prepare(
-        'SELECT slug, title, published_at, body FROM posts WHERE slug = ?',
+        'SELECT slug, title, published_at, body_html FROM posts WHERE slug = ?',
       )
       .bind(slug)
       .first<PostRow>(),

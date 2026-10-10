@@ -25,12 +25,12 @@ export function absoluteUrl(
   return new URL(pathname, `${requestOrigin(c)}/`).href
 }
 
-export function excerptFromBody(body: string, maxLen = 160): string {
-  const first = body.split(/\n\n+/)[0]?.trim() ?? ''
-  if (first.length <= maxLen) {
-    return first
+export function excerptFromBody(bodyHtml: string, maxLen = 160): string {
+  const text = bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  if (text.length <= maxLen) {
+    return text
   }
-  return `${first.slice(0, maxLen - 1)}…`
+  return `${text.slice(0, maxLen - 1)}…`
 }
 
 export function siteOgImageUrl(c: Context<{ Bindings: Env }>): string {
