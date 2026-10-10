@@ -17,16 +17,31 @@ type Publisher struct {
 	Stdout io.Writer
 }
 
-type DryRunLine struct {
-	Path     string
-	HTML     string
-	SQL      string
-	Params   []string
+type Report struct {
+	OK     int
+	Failed int
+	Errors []error
 }
 
-func PublishFiles(ctx context.Context, pub Publisher, paths []string, dryRun bool) error {
+func PublishFiles(ctx context.Context, pub Publisher, paths []string, dryRun bool) Report {
+	var report Report
 	for _, path := range paths {
 		if err := publishOne(ctx, pub, path, dryRun); err != nil {
+			report.Failed++
+			report.Errors = append(report.Errors, err)
+			continue
+		}
+		report.OK++
+	}
+	return report
+}
+
+func FormatSummary(w io.Writer, report Report) error {
+	if _, err := fmt.Fprintf(w, "成功: %d\n失敗: %d\n", report.OK, report.Failed); err != nil {
+		return err
+	}
+	for _, err := range report.Errors {
+		if _, err := fmt.Fprintf(w, "%s\n", err); err != nil {
 			return err
 		}
 	}
@@ -49,26 +64,20 @@ func publishOne(ctx context.Context, pub Publisher, path string, dryRun bool) er
 		BodyHTML:    doc.HTML,
 	}
 	if dryRun {
-		line := DryRunLine{
-			Path:   path,
-			HTML:   doc.HTML,
-			SQL:    d1client.UpsertSQL,
-			Params: d1client.UpsertParams(row),
-		}
 		if _, err := fmt.Fprintf(pub.Stdout, "%s\n--- html ---\n%s\n--- sql ---\n%s\n--- params ---\n%s\n\n",
-			line.Path, line.HTML, line.SQL, strings.Join(line.Params, "\n")); err != nil {
-			return err
+			path, doc.HTML, d1client.UpsertSQL, strings.Join(d1client.UpsertParams(row), "\n")); err != nil {
+			return fmt.Errorf("%s: %w", path, err)
 		}
 		return nil
 	}
 	if pub.Client == nil {
-		return fmt.Errorf("d1 client is not configured")
+		return fmt.Errorf("%s: d1 client is not configured", path)
 	}
 	if err := pub.Client.UpsertPost(ctx, row); err != nil {
 		return fmt.Errorf("%s: %w", path, err)
 	}
 	if _, err := fmt.Fprintf(pub.Stdout, "%s -> %s\n", path, row.Slug); err != nil {
-		return err
+		return fmt.Errorf("%s: %w", path, err)
 	}
 	return nil
 }

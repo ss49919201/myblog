@@ -121,8 +121,12 @@ func runSync(_ string, args []string, stdout, stderr io.Writer) int {
 	if !*dryRun {
 		pub.Client = d1client.New(*apiToken, *accountID, *databaseID)
 	}
-	if err := syncposts.PublishFiles(context.Background(), pub, paths, *dryRun); err != nil {
+	report := syncposts.PublishFiles(context.Background(), pub, paths, *dryRun)
+	if err := syncposts.FormatSummary(stderr, report); err != nil {
 		fmt.Fprintln(stderr, "blog sync:", err)
+		return exitFailed
+	}
+	if report.Failed > 0 {
 		return exitFailed
 	}
 	return exitOK

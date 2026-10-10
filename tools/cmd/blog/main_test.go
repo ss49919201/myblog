@@ -82,7 +82,7 @@ func TestRun(t *testing.T) {
 		t.Fatal(err)
 	}
 	code, stdout, stderr = runCmd(root, "sync", "--dry-run", mdPath)
-	if code != 0 || stderr != "" {
+	if code != 0 || stderr != "成功: 1\n失敗: 0\n" {
 		t.Fatalf("sync dry-run code=%d stdout=%q stderr=%q", code, stdout, stderr)
 	}
 	if !strings.Contains(stdout, "--- html ---") || !strings.Contains(stdout, "<strong>hi</strong>") {
