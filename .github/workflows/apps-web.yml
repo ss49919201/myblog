@@ -31,4 +31,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @myblog/web typecheck
+      - run: pnpm --filter @myblog/web lint
       - run: pnpm --filter @myblog/web test
