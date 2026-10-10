@@ -1,21 +1,10 @@
 import type { FC, PropsWithChildren } from 'hono/jsx'
+import type { PageMeta } from '../meta'
+import { rootCssVariables } from '../theme'
+import { MetaTags } from './MetaTags'
 
 const styles = `
-  :root {
-    color-scheme: light;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --bg: #fafafa;
-    --accent: #c4b5fd;
-    --max: 42rem;
-    --radius-lg: 1rem;
-    --radius-md: 0.625rem;
-    --radius-pill: 999px;
-    --shadow-card: 0 4px 0 color-mix(in srgb, var(--accent) 55%, transparent),
-      0 10px 24px color-mix(in srgb, var(--text) 8%, transparent);
-    --shadow-card-hover: 0 6px 0 color-mix(in srgb, var(--accent) 70%, transparent),
-      0 16px 32px color-mix(in srgb, var(--text) 12%, transparent);
-  }
+  ${rootCssVariables()}
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -159,14 +148,17 @@ const styles = `
 
 type LayoutProps = PropsWithChildren<{
   title: string
+  meta: PageMeta
 }>
 
-export const Layout: FC<LayoutProps> = ({ title, children }) => (
+export const Layout: FC<LayoutProps> = ({ title, meta, children }) => (
   <html lang="ja">
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="description" content={meta.description} />
       <title>{title}</title>
+      <MetaTags meta={meta} />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
       <link

@@ -3,6 +3,12 @@
   "name": "myblog-web",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-08",
+  "rules": [
+    {
+      "type": "Data",
+      "globs": ["**/*.woff"]
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",
