@@ -45,7 +45,7 @@ app.get('/posts/:slug', async (c) => {
     (post) => {
       const meta = {
         title: `${post.title} | ${SITE_NAME}`,
-        description: excerptFromBody(post.body),
+        description: excerptFromBody(post.bodyHtml),
         type: 'article' as const,
         url: absoluteUrl(c, `/posts/${post.slug}`),
         image: postOgImageUrl(c, post.slug),

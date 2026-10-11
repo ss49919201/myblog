@@ -1,4 +1,5 @@
 import type { FC } from 'hono/jsx'
+import { raw } from 'hono/html'
 import type { PageMeta } from '../meta'
 import type { Post } from '../posts/types'
 import { formatPublishedAt } from './format'
@@ -7,10 +8,6 @@ import { Layout } from './Layout'
 type PostPageProps = {
   post: Post
   meta: PageMeta
-}
-
-function bodyParagraphs(body: string): string[] {
-  return body.split(/\n\n+/).map((p) => p.trim()).filter(Boolean)
 }
 
 export const PostPage: FC<PostPageProps> = ({ post, meta }) => (
@@ -22,11 +19,7 @@ export const PostPage: FC<PostPageProps> = ({ post, meta }) => (
           {formatPublishedAt(post.publishedAt)}
         </time>
       </p>
-      <div class="article-body">
-        {bodyParagraphs(post.body).map((paragraph) => (
-          <p key={paragraph.slice(0, 24)}>{paragraph}</p>
-        ))}
-      </div>
+      <div class="article-body">{raw(post.bodyHtml)}</div>
       <a class="back-link" href="/">← 一覧へ</a>
     </article>
   </Layout>
