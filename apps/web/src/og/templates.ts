@@ -7,28 +7,42 @@ const titleBlockHeight =
   ogImage.titleLineHeight *
   ogImage.titleMaxLines
 
-function frameStyle(): string {
+function outerFrameStyle(): string {
   return [
     'display: flex',
-    'flex-direction: column',
     `width: ${ogImage.width}px`,
     `height: ${ogImage.height}px`,
-    `background: ${palette.bg}`,
     `border: ${ogImage.borderPx}px solid ${palette.accent}`,
-    `padding: ${ogImage.paddingPx}px`,
+    `background: ${palette.accent}`,
     'box-sizing: border-box',
     `font-family: '${ogFontFamily}'`,
     `color: ${palette.text}`,
   ].join('; ')
 }
 
+function innerSurfaceStyle(): string {
+  return [
+    'display: flex',
+    'flex-direction: column',
+    'flex: 1',
+    'min-height: 0',
+    'min-width: 0',
+    `background: ${palette.bg}`,
+    `border-radius: ${ogImage.innerRadiusPx}px`,
+    `padding: ${ogImage.paddingPx}px`,
+    'box-sizing: border-box',
+  ].join('; ')
+}
+
 export function siteOgHtml(): string {
   return `
-    <div style="${frameStyle()}">
+    <div style="${outerFrameStyle()}">
+      <div style="${innerSurfaceStyle()}">
       <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
         <p style="margin: 0; font-size: 72px; font-weight: 700; letter-spacing: 0.02em;">
           ${escapeHtml(SITE_NAME)}
         </p>
+      </div>
       </div>
     </div>
   `
@@ -37,7 +51,8 @@ export function siteOgHtml(): string {
 export function postOgHtml(title: string): string {
   const safeTitle = escapeHtml(title)
   return `
-    <div style="${frameStyle()}">
+    <div style="${outerFrameStyle()}">
+      <div style="${innerSurfaceStyle()}">
       <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0;">
         <h1 style="
           margin: 0;
@@ -57,6 +72,7 @@ export function postOgHtml(title: string): string {
         font-weight: 700;
         color: ${palette.muted};
       ">${escapeHtml(SITE_NAME)}</p>
+      </div>
     </div>
   `
 }
