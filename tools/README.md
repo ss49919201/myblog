@@ -50,6 +50,28 @@ go run ./cmd/blog sync --dry-run --prune   # D1 の一覧取得が必要
 go run ./cmd/blog new -title "タイトル" -slug my-post -published-at 2026-10-03T00:00:00Z
 ```
 
-## 将来の CI 同期（今回は未実装）
+## GitHub Actions（main への自動 sync）
 
-main への push で自動 `blog sync` する場合、GitHub Actions のシークレットに `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_D1_DATABASE_ID`、`CLOUDFLARE_API_TOKEN`（D1 書き込み権限）を登録し、workflow で `go run ./tools/cmd/blog sync` を実行します。`--prune` を使う場合は削除権限もトークンに含めてください。
+`.github/workflows/sync-d1.yml` が、`main` への push（`content/**` または `tools/**` の変更）と `workflow_dispatch` で `blog check` のあと `blog sync --prune` を実行します。ジョブは `environment: production` に紐づきます。
+
+### シークレットの設定
+
+1. GitHub リポジトリで **Settings → Environments** を開き、`production` 環境を作成します（未作成の場合）。
+2. `production` の **Environment secrets**（リポジトリ全体の Actions secrets でも可）に次を登録します。
+
+| シークレット名 | 内容 |
+| --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare アカウント ID |
+| `CLOUDFLARE_D1_DATABASE_ID` | 対象 D1 データベースの UUID |
+| `CLOUDFLARE_API_TOKEN` | 下記権限を付けた API トークン |
+
+`blog` CLI は環境変数名と同じキーを読みます。workflow から渡すため、名前は表のとおりにしてください。
+
+### Cloudflare API トークンの権限
+
+[Cloudflare Dashboard](https://dash.cloudflare.com/) → **My Profile** → **API Tokens** → **Create Token**（Custom token）で作成します。
+
+- **Permissions:** `Account` → `D1` → **Edit**（読み取り・クエリ実行・書き込み・行削除に必要）
+- **Account Resources:** 対象アカウントを Include
+
+`--prune` で `DELETE` を実行するため、読み取り専用トークンでは不足します。本番 DB にのみ効くトークンに絞ることを推奨します。
