@@ -1,11 +1,12 @@
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
 import type { Result } from 'neverthrow'
 import {
+  envelopeMatchesHeaderFrom,
   formatAuthFailure,
   isMailAuthenticationValid,
   isSenderAllowed,
   parseAllowlist,
-  parseAuthenticationResults,
+  validateMailAuthentication,
 } from './domain/auth'
 import type { IngestError } from './domain/errors'
 import { MAX_BODY_BYTES } from './domain/post'
@@ -20,7 +21,8 @@ import type { Env } from './env'
 
 export type IngestSuccess = OpenPostPrResult & { slug: string }
 
-function collectAuthResultHeaders(headers: Headers): string[] {
+/** Header order preserved; forged lines with other authserv-ids are ignored later in auth. */
+export function collectAuthenticationResultLines(headers: Headers): string[] {
   const lines: string[] = []
   for (const name of ['authentication-results', 'arc-authentication-results']) {
     for (const value of headers.getAll(name)) {
@@ -28,6 +30,10 @@ function collectAuthResultHeaders(headers: Headers): string[] {
     }
   }
   return lines
+}
+
+export function headerFromAddress(headers: Headers, envelopeFrom: string): string {
+  return headers.get('From') ?? headers.get('from') ?? envelopeFrom
 }
 
 export function ingestEmailMessage(
@@ -44,13 +50,22 @@ export function ingestEmailMessage(
     })
   }
 
+  const headerFrom = headerFromAddress(message.headers, message.from)
   const allowlist = parseAllowlist(env.ALLOWED_SENDERS)
-  if (!isSenderAllowed(message.from, allowlist)) {
-    return errAsync({ type: 'SenderNotAllowed', from: message.from })
+  if (!isSenderAllowed(headerFrom, allowlist)) {
+    return errAsync({ type: 'SenderNotAllowed', from: headerFrom })
   }
 
-  const authLines = collectAuthResultHeaders(message.headers)
-  const verdict = parseAuthenticationResults(authLines)
+  if (!envelopeMatchesHeaderFrom(message.from, headerFrom)) {
+    return errAsync({
+      type: 'EnvelopeFromMismatch',
+      headerFrom,
+      envelopeFrom: message.from,
+    })
+  }
+
+  const authLines = collectAuthenticationResultLines(message.headers)
+  const verdict = validateMailAuthentication(authLines, headerFrom)
   if (!isMailAuthenticationValid(verdict)) {
     return errAsync({
       type: 'AuthFailed',

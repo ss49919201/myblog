@@ -2,6 +2,7 @@ export type IngestError =
   | { type: 'Reject'; reason: string }
   | { type: 'AuthFailed'; detail: string }
   | { type: 'SenderNotAllowed'; from: string }
+  | { type: 'EnvelopeFromMismatch'; headerFrom: string; envelopeFrom: string }
   | { type: 'MessageTooLarge'; size: number; limit: number }
   | { type: 'NoPlainBody'; detail: string }
   | { type: 'InvalidSlug'; slug: string; detail: string }
@@ -17,6 +18,8 @@ export function rejectReason(error: IngestError): string | null {
       return `Authentication failed: ${error.detail}`
     case 'SenderNotAllowed':
       return `Sender not allowed: ${error.from}`
+    case 'EnvelopeFromMismatch':
+      return `Envelope From does not match header From (${error.envelopeFrom} vs ${error.headerFrom})`
     case 'MessageTooLarge':
       return `Message too large (${error.size} bytes, limit ${error.limit})`
     case 'NoPlainBody':

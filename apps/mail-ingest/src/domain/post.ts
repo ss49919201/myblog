@@ -10,22 +10,11 @@ export type PostDraft = {
   body: string
 }
 
-const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/
-
 function isInvalidSlug(slug: string): boolean {
   if (!slug || slug === '.' || slug === '..') {
     return true
   }
   return slug.includes('/') || slug.includes('\\') || slug.includes('\0')
-}
-
-/** Removes a leading --- … --- block so pasted post files do not duplicate metadata in the body. */
-export function stripLeadingYamlBlock(rawBody: string): string {
-  const match = rawBody.match(FRONTMATTER_RE)
-  if (!match) {
-    return rawBody
-  }
-  return match[2].replace(/^\s+/, '')
 }
 
 export function validateSlug(slug: string): Result<string, IngestError> {
@@ -81,13 +70,12 @@ export function buildPostDraft(input: BuildPostInput): Result<PostDraft, IngestE
   }
 
   const slug = generateSlug(input.receivedAt, input.idSeed)
-  const body = stripLeadingYamlBlock(input.plainBody)
 
   return validateSlug(slug).map((validSlug) => ({
     title,
     slug: validSlug,
     publishedAt: input.receivedAt,
-    body,
+    body: input.plainBody,
   }))
 }
 

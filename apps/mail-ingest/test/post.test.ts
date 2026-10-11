@@ -7,14 +7,13 @@ import {
   buildPostDraft,
   generateSlug,
   renderPostMarkdown,
-  stripLeadingYamlBlock,
   validateSlug,
 } from '../src/domain/post'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 
 describe('slug', () => {
-  it('always auto-generates slug and strips leading YAML from body', () => {
+  it('always auto-generates slug and keeps body verbatim', () => {
     const plainBody = `---\nslug: my-custom-slug\ntitle: ignored\n---\n\nHello`
     const draft = buildPostDraft({
       subject: 'Mail title',
@@ -23,16 +22,10 @@ describe('slug', () => {
       idSeed: 'abc-def',
     })
     expect(draft._unsafeUnwrap().slug).toBe('20261011-abcdef')
-    expect(draft._unsafeUnwrap().body).toBe('Hello')
+    expect(draft._unsafeUnwrap().body).toBe(plainBody)
   })
 
-  it('keeps body when there is no leading YAML block', () => {
-    expect(stripLeadingYamlBlock('# Hi\n\n---\n\nnot frontmatter')).toBe(
-      '# Hi\n\n---\n\nnot frontmatter',
-    )
-  })
-
-  it('generates dated slug without frontmatter', () => {
+  it('generates dated slug', () => {
     const slug = generateSlug(new Date('2026-10-11T08:00:00.000Z'), 'uuid-1')
     expect(slug).toBe('20261011-uuid1')
   })
