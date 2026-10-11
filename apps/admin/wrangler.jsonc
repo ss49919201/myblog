@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "myblog-admin",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "vars": {
+    "CF_ACCESS_TEAM_DOMAIN": "test-team.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "test-audience-tag",
+    "PUBLIC_WEB_URL": "https://blog.example.com"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "myblog-web",
+      "database_id": "REPLACE_WITH_PRODUCTION_DATABASE_ID"
+    }
+  ]
+}
