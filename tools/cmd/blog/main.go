@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/ss49919201/myblog/tools/internal/content"
@@ -26,13 +27,32 @@ type command struct {
 }
 
 var commands = []command{
-	{"new", "記事の雛形を src/content/posts/<slug>.md に書きます", runNew},
-	{"check", "記事の frontmatter を検証します", runCheck},
-	{"sync", "Markdown を HTML に変換して D1 の posts に upsert します", runSync},
+	{"new", "記事の雛形を content/posts/<slug>.md に書きます", runNew},
+	{"check", "content/posts の frontmatter を検証します", runCheck},
+	{"sync", "content/posts を HTML に変換して D1 の posts に upsert します", runSync},
 }
 
 func main() {
-	os.Exit(run(".", os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(run(findRepoRoot(), os.Args[1:], os.Stdout, os.Stderr))
+}
+
+func findRepoRoot() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "."
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "content", "posts")); err == nil {
+			if _, err := os.Stat(filepath.Join(dir, "tools", "go.mod")); err == nil {
+				return dir
+			}
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "."
+		}
+		dir = parent
+	}
 }
 
 func run(root string, args []string, stdout, stderr io.Writer) int {
@@ -52,10 +72,10 @@ func run(root string, args []string, stdout, stderr io.Writer) int {
 func runNew(root string, args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("new", flag.ContinueOnError)
 	fs.SetOutput(stderr)
+	postsDir := fs.String("posts-dir", content.DefaultPostsDir, "記事ディレクトリ（リポジトリルートからの相対パス）")
 	title := fs.String("title", "", "記事のタイトル")
 	slugFlag := fs.String("slug", "", "記事のスラッグ")
-	categoryFlag := fs.String("category", "", "カテゴリ id（省略可）")
-	dateFlag := fs.String("date", "", "公開日時。省略すると現在時刻。2006-01-02、ゾーン無しの時刻、または RFC3339")
+	publishedAtFlag := fs.String("published-at", "", "公開日時。省略すると現在時刻。2006-01-02、ゾーン無しの時刻、または RFC3339")
 	draft := fs.Bool("draft", true, "下書きにする")
 	if err := fs.Parse(args); err != nil {
 		return exitUsage
@@ -65,28 +85,19 @@ func runNew(root string, args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err.Error())
 		return exitUsage
 	}
-	var category content.Slug
-	if *categoryFlag != "" {
-		category, err = content.ParseSlug(*categoryFlag)
+	publishedAt := time.Now().Truncate(time.Second)
+	if *publishedAtFlag != "" {
+		publishedAt, err = content.ParseDate(*publishedAtFlag)
 		if err != nil {
 			fmt.Fprintln(stderr, err.Error())
 			return exitUsage
 		}
 	}
-	date := time.Now().Truncate(time.Second)
-	if *dateFlag != "" {
-		date, err = content.ParseDate(*dateFlag)
-		if err != nil {
-			fmt.Fprintln(stderr, err.Error())
-			return exitUsage
-		}
-	}
-	path, err := content.Create(root, content.Post{
-		Title:    *title,
-		Slug:     slug,
-		Date:     date,
-		Category: category,
-		Draft:    *draft,
+	path, err := content.Create(root, *postsDir, content.Post{
+		Title:       *title,
+		Slug:        slug,
+		PublishedAt: publishedAt,
+		Draft:       *draft,
 	})
 	if err != nil {
 		fmt.Fprintln(stderr, "blog new:", err)
@@ -96,32 +107,39 @@ func runNew(root string, args []string, stdout, stderr io.Writer) int {
 	return exitOK
 }
 
-func runSync(_ string, args []string, stdout, stderr io.Writer) int {
+func runSync(root string, args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("sync", flag.ContinueOnError)
 	fs.SetOutput(stderr)
+	postsDir := fs.String("posts-dir", content.DefaultPostsDir, "記事ディレクトリ（リポジトリルートからの相対パス）")
 	accountID := fs.String("account-id", os.Getenv("CLOUDFLARE_ACCOUNT_ID"), "Cloudflare アカウント ID")
 	databaseID := fs.String("database-id", os.Getenv("CLOUDFLARE_D1_DATABASE_ID"), "D1 データベース ID")
 	apiToken := fs.String("api-token", os.Getenv("CLOUDFLARE_API_TOKEN"), "Cloudflare API トークン")
 	dryRun := fs.Bool("dry-run", false, "HTML と SQL を表示するだけで D1 には書き込まない")
+	prune := fs.Bool("prune", false, "ディレクトリに無い slug を D1 から削除する")
 	if err := fs.Parse(args); err != nil {
 		return exitUsage
 	}
-	paths := fs.Args()
-	if len(paths) == 0 {
-		fmt.Fprintln(stderr, "blog sync は Markdown ファイルを1つ以上指定してください")
+	if len(fs.Args()) != 0 {
+		fmt.Fprintln(stderr, "blog sync は引数を取りません")
 		return exitUsage
 	}
-	if !*dryRun {
+	needCreds := !*dryRun || *prune
+	if needCreds {
 		if *accountID == "" || *databaseID == "" || *apiToken == "" {
 			fmt.Fprintln(stderr, "blog sync: --account-id、--database-id、--api-token（または同名の環境変数）が必要です")
 			return exitUsage
 		}
 	}
 	pub := syncposts.Publisher{Stdout: stdout}
-	if !*dryRun {
+	if needCreds {
 		pub.Client = d1client.New(*apiToken, *accountID, *databaseID)
 	}
-	report := syncposts.PublishFiles(context.Background(), pub, paths, *dryRun)
+	report := syncposts.SyncPosts(context.Background(), pub, syncposts.Options{
+		Root:     root,
+		PostsDir: *postsDir,
+		DryRun:   *dryRun,
+		Prune:    *prune,
+	})
 	if err := syncposts.FormatSummary(stderr, report); err != nil {
 		fmt.Fprintln(stderr, "blog sync:", err)
 		return exitFailed
@@ -133,11 +151,17 @@ func runSync(_ string, args []string, stdout, stderr io.Writer) int {
 }
 
 func runCheck(root string, args []string, stdout, stderr io.Writer) int {
-	if len(args) != 0 {
-		fmt.Fprintln(stderr, "blog check は引数を取りません")
+	fs := flag.NewFlagSet("check", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	postsDir := fs.String("posts-dir", content.DefaultPostsDir, "記事ディレクトリ（リポジトリルートからの相対パス）")
+	if err := fs.Parse(args); err != nil {
 		return exitUsage
 	}
-	problems, err := content.Check(root)
+	if len(fs.Args()) != 0 {
+		fmt.Fprintln(stderr, "blog check は位置引数を取りません")
+		return exitUsage
+	}
+	problems, err := content.Check(root, *postsDir)
 	if err != nil {
 		fmt.Fprintln(stderr, "blog check:", err)
 		return exitFailed
