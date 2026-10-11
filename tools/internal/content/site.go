@@ -18,26 +18,31 @@ type Problem struct {
 
 func (p Problem) String() string { return p.Path + ": " + p.Msg }
 
-const (
-	configFile    = "src/content.config.ts"
-	postsDir      = "src/content/posts"
-	categoriesDir = "src/content/categories"
-)
+const DefaultPostsDir = "content/posts"
 
-func Check(root string) ([]Problem, error) {
-	s, err := load(os.DirFS(root))
+func ResolvePostsDir(postsDir string) string {
+	if postsDir == "" {
+		return DefaultPostsDir
+	}
+	return filepath.ToSlash(postsDir)
+}
+
+func Check(root string, postsDir string) ([]Problem, error) {
+	dir := ResolvePostsDir(postsDir)
+	s, err := load(os.DirFS(root), dir)
 	if err != nil {
 		return nil, err
 	}
-	return s.problems(), nil
+	return s.problems(dir), nil
 }
 
-func Create(root string, p Post) (string, error) {
-	s, err := load(os.DirFS(root))
+func Create(root string, postsDir string, p Post) (string, error) {
+	dir := ResolvePostsDir(postsDir)
+	s, err := load(os.DirFS(root), dir)
 	if err != nil {
 		return "", err
 	}
-	path := postPath(p.Slug)
+	path := PostPath(dir, p.Slug)
 	src := renderPost(p)
 	q, probs := parsePost(path, src)
 	if len(probs) > 0 {
@@ -53,7 +58,7 @@ func Create(root string, p Post) (string, error) {
 		return "", err
 	}
 	var mine []Problem
-	for _, prob := range siteRules(append(slices.Clone(s.posts), placed{path: path, post: q}), s.categories) {
+	for _, prob := range siteRules(append(slices.Clone(s.posts), placed{path: path, post: q}), dir) {
 		if prob.Path == path {
 			mine = append(mine, prob)
 		}
@@ -84,12 +89,27 @@ func Create(root string, p Post) (string, error) {
 	return path, nil
 }
 
-func postPath(slug Slug) string { return postsDir + "/" + slug.String() + ".md" }
+func PostPath(postsDir string, slug Slug) string {
+	return ResolvePostsDir(postsDir) + "/" + slug.String() + ".md"
+}
+
+func ListMarkdownPosts(root, postsDir string) ([]string, error) {
+	dir := ResolvePostsDir(postsDir)
+	var paths []string
+	err := walkMarkdown(os.DirFS(root), dir, func(path string) error {
+		paths = append(paths, filepath.Join(root, filepath.FromSlash(path)))
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	slices.Sort(paths)
+	return paths, nil
+}
 
 type site struct {
-	posts      []placed
-	categories map[Slug]struct{}
-	broken     []Problem
+	posts  []placed
+	broken []Problem
 }
 
 type placed struct {
@@ -97,26 +117,8 @@ type placed struct {
 	post Post
 }
 
-func load(fsys fs.FS) (*site, error) {
-	if _, err := fs.Stat(fsys, configFile); err != nil {
-		return nil, errors.New("src/content.config.ts が見つかりません。blog はリポジトリのルートで実行してください")
-	}
-	s := &site{categories: map[Slug]struct{}{}}
-	if err := walkMarkdown(fsys, categoriesDir, func(path string) error {
-		rel := strings.TrimSuffix(strings.TrimPrefix(path, categoriesDir+"/"), ".md")
-		id, err := ParseSlug(rel)
-		if err != nil {
-			s.broken = append(s.broken, Problem{
-				Path: path,
-				Msg:  "カテゴリファイルは src/content/categories/<id>.md で、id は1つのパス要素である必要があります",
-			})
-			return nil
-		}
-		s.categories[id] = struct{}{}
-		return nil
-	}); err != nil {
-		return nil, err
-	}
+func load(fsys fs.FS, postsDir string) (*site, error) {
+	s := &site{}
 	if err := walkMarkdown(fsys, postsDir, func(path string) error {
 		data, err := fs.ReadFile(fsys, path)
 		if err != nil {
@@ -165,9 +167,9 @@ func walkMarkdown(fsys fs.FS, dir string, fn func(path string) error) error {
 	})
 }
 
-func (s *site) problems() []Problem {
+func (s *site) problems(postsDir string) []Problem {
 	probs := slices.Clone(s.broken)
-	probs = append(probs, siteRules(s.posts, s.categories)...)
+	probs = append(probs, siteRules(s.posts, postsDir)...)
 	sortProblems(probs)
 	return probs
 }
@@ -178,26 +180,19 @@ func sortProblems(probs []Problem) {
 	})
 }
 
-func siteRules(posts []placed, categories map[Slug]struct{}) []Problem {
+func siteRules(posts []placed, postsDir string) []Problem {
 	var probs []Problem
 	bySlug := map[string][]string{}
 	for _, p := range posts {
 		slug := p.post.Slug.String()
-		if p.path != postPath(p.post.Slug) {
+		want := PostPath(postsDir, p.post.Slug)
+		if p.path != want {
 			probs = append(probs, Problem{
 				Path: p.path,
-				Msg:  fmt.Sprintf("slug %q のファイルは %s である必要があります", slug, postPath(p.post.Slug)),
+				Msg:  fmt.Sprintf("slug %q のファイルは %s である必要があります", slug, want),
 			})
 		}
 		bySlug[slug] = append(bySlug[slug], p.path)
-		if p.post.Category != (Slug{}) {
-			if _, ok := categories[p.post.Category]; !ok {
-				probs = append(probs, Problem{
-					Path: p.path,
-					Msg:  fmt.Sprintf("カテゴリ %q のファイル src/content/categories/%s.md がありません", p.post.Category.String(), p.post.Category.String()),
-				})
-			}
-		}
 	}
 	slugs := make([]string, 0, len(bySlug))
 	for slug := range bySlug {
@@ -226,16 +221,13 @@ func siteRules(posts []placed, categories map[Slug]struct{}) []Problem {
 	return probs
 }
 
-// time.Time equality compares Location pointers, so the offset is compared
-// separately from the instant.
 func samePost(a, b Post) bool {
-	_, aOff := a.Date.Zone()
-	_, bOff := b.Date.Zone()
+	_, aOff := a.PublishedAt.Zone()
+	_, bOff := b.PublishedAt.Zone()
 	return a.Title == b.Title &&
 		a.Slug == b.Slug &&
-		a.Date.Equal(b.Date) &&
+		a.PublishedAt.Equal(b.PublishedAt) &&
 		aOff == bOff &&
-		a.Category == b.Category &&
 		a.Draft == b.Draft &&
 		a.Body == b.Body
 }

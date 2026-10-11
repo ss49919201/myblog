@@ -38,12 +38,11 @@ func ParseDate(s string) (time.Time, error) {
 }
 
 type Post struct {
-	Title    string
-	Slug     Slug
-	Date     time.Time
-	Category Slug
-	Draft    bool
-	Body     string
+	Title       string
+	Slug        Slug
+	PublishedAt time.Time
+	Draft       bool
+	Body        string
 }
 
 type field struct {
@@ -58,8 +57,7 @@ type field struct {
 var postFields = []field{
 	{key: "title", required: true, decode: decodeTitle, encode: func(p Post) any { return p.Title }},
 	{key: "slug", required: true, decode: decodeSlug, encode: func(p Post) any { return p.Slug.String() }},
-	{key: "date", required: true, decode: decodeDate, encode: func(p Post) any { return p.Date }},
-	{key: "category", required: false, decode: decodeCategory, encode: encodeCategory},
+	{key: "published_at", required: true, decode: decodePublishedAt, encode: func(p Post) any { return p.PublishedAt }},
 	{key: "draft", required: false, decode: decodeDraft, encode: func(p Post) any { return p.Draft }},
 }
 
@@ -83,7 +81,7 @@ func decodeSlug(v *yaml.Node, p *Post) error {
 	return nil
 }
 
-func decodeDate(v *yaml.Node, p *Post) error {
+func decodePublishedAt(v *yaml.Node, p *Post) error {
 	if v.ShortTag() != "!!timestamp" && v.ShortTag() != "!!str" {
 		return want("日付", v)
 	}
@@ -91,19 +89,7 @@ func decodeDate(v *yaml.Node, p *Post) error {
 	if err != nil {
 		return err
 	}
-	p.Date = t
-	return nil
-}
-
-func decodeCategory(v *yaml.Node, p *Post) error {
-	if v.ShortTag() != "!!str" {
-		return want("文字列", v)
-	}
-	slug, err := ParseSlug(v.Value)
-	if err != nil {
-		return err
-	}
-	p.Category = slug
+	p.PublishedAt = t
 	return nil
 }
 
@@ -117,13 +103,6 @@ func decodeDraft(v *yaml.Node, p *Post) error {
 	}
 	p.Draft = draft
 	return nil
-}
-
-func encodeCategory(p Post) any {
-	if p.Category == (Slug{}) {
-		return nil
-	}
-	return p.Category.String()
 }
 
 func want(kind string, v *yaml.Node) error {
