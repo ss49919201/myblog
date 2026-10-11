@@ -34,7 +34,8 @@ A GitHub App would be better for rotation and audit at org scale, but for a sing
 ## Authoring mail
 
 - **Subject** → `title` in frontmatter.
-- **Body** → Markdown (`text/plain`). Optional leading YAML frontmatter is read only for `slug`; it is stripped from the stored body. `title` / `published_at` in that block are not used.
+- **Body** → Markdown (`text/plain`). **Slug** is always `YYYYMMDD-<id>` from the receive date and a short id (message id seed), never taken from the body.
+- If the body starts with a `---` … `---` YAML block (for example a pasted post file), that block is **removed** from the stored body. The repo file already gets canonical `title`, `slug`, and `published_at` from the mail; leaving the pasted block would show stale duplicate metadata in the PR diff.
 - **Received time** → `published_at` (UTC ISO).
 - If `content/posts/<slug>.md` already exists on `main`, the message is rejected (no overwrite).
 

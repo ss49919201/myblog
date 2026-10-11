@@ -19,33 +19,13 @@ function isInvalidSlug(slug: string): boolean {
   return slug.includes('/') || slug.includes('\\') || slug.includes('\0')
 }
 
-export function splitLeadingFrontmatter(rawBody: string): {
-  frontmatter: string | null
-  body: string
-} {
+/** Removes a leading --- … --- block so pasted post files do not duplicate metadata in the body. */
+export function stripLeadingYamlBlock(rawBody: string): string {
   const match = rawBody.match(FRONTMATTER_RE)
   if (!match) {
-    return { frontmatter: null, body: rawBody }
+    return rawBody
   }
-  return { frontmatter: match[1], body: match[2] }
-}
-
-export function slugFromFrontmatterYaml(yaml: string): string | null {
-  for (const line of yaml.split(/\r?\n/)) {
-    const m = line.match(/^slug:\s*(.+)\s*$/)
-    if (!m) {
-      continue
-    }
-    let value = m[1].trim()
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1)
-    }
-    return value
-  }
-  return null
+  return match[2].replace(/^\s+/, '')
 }
 
 export function validateSlug(slug: string): Result<string, IngestError> {
@@ -100,16 +80,14 @@ export function buildPostDraft(input: BuildPostInput): Result<PostDraft, IngestE
     })
   }
 
-  const { frontmatter, body } = splitLeadingFrontmatter(input.plainBody)
-  const slugCandidate =
-    (frontmatter ? slugFromFrontmatterYaml(frontmatter) : null) ??
-    generateSlug(input.receivedAt, input.idSeed)
+  const slug = generateSlug(input.receivedAt, input.idSeed)
+  const body = stripLeadingYamlBlock(input.plainBody)
 
-  return validateSlug(slugCandidate).map((slug) => ({
+  return validateSlug(slug).map((validSlug) => ({
     title,
-    slug,
+    slug: validSlug,
     publishedAt: input.receivedAt,
-    body: body.replace(/^\s+/, ''),
+    body,
   }))
 }
 

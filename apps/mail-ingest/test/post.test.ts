@@ -7,27 +7,29 @@ import {
   buildPostDraft,
   generateSlug,
   renderPostMarkdown,
-  splitLeadingFrontmatter,
-  slugFromFrontmatterYaml,
+  stripLeadingYamlBlock,
   validateSlug,
 } from '../src/domain/post'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 
 describe('slug', () => {
-  it('uses frontmatter slug when present', () => {
-    const body = `---\nslug: my-custom-slug\ntitle: ignored\n---\n\nHello`
-    const { frontmatter, body: rest } = splitLeadingFrontmatter(body)
-    expect(frontmatter).toContain('my-custom-slug')
-    expect(slugFromFrontmatterYaml(frontmatter!)).toBe('my-custom-slug')
+  it('always auto-generates slug and strips leading YAML from body', () => {
+    const plainBody = `---\nslug: my-custom-slug\ntitle: ignored\n---\n\nHello`
     const draft = buildPostDraft({
       subject: 'Mail title',
-      plainBody: body,
+      plainBody,
       receivedAt: new Date('2026-10-11T12:00:00.000Z'),
-      idSeed: 'abc',
+      idSeed: 'abc-def',
     })
-    expect(draft._unsafeUnwrap().slug).toBe('my-custom-slug')
-    expect(rest.trim()).toBe('Hello')
+    expect(draft._unsafeUnwrap().slug).toBe('20261011-abcdef')
+    expect(draft._unsafeUnwrap().body).toBe('Hello')
+  })
+
+  it('keeps body when there is no leading YAML block', () => {
+    expect(stripLeadingYamlBlock('# Hi\n\n---\n\nnot frontmatter')).toBe(
+      '# Hi\n\n---\n\nnot frontmatter',
+    )
   })
 
   it('generates dated slug without frontmatter', () => {
