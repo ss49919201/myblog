@@ -1,0 +1,41 @@
+name: apps-admin
+
+on:
+  push:
+    paths:
+      - 'apps/admin/**'
+      - 'apps/web/schema.sql'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/apps-admin.yml'
+  pull_request:
+    paths:
+      - 'apps/admin/**'
+      - 'apps/web/schema.sql'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/apps-admin.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate admin test JWKS fixtures
+        run: node apps/admin/scripts/generate-test-jwks.mjs
+      - name: Install sqlite3def
+        run: |
+          curl -sL https://github.com/sqldef/sqldef/releases/download/v3.11.26/sqlite3def_linux_amd64.tar.gz | tar xz
+          sudo mv sqlite3def /usr/local/bin/
+      - run: pnpm run check:apps

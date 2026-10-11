@@ -1,0 +1,19 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "myblog-admin",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-08",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "myblog-web",
+      "database_id": "REPLACE_WITH_PRODUCTION_DATABASE_ID"
+    }
+  ],
+  "vars": {
+    "CF_ACCESS_TEAM_DOMAIN": "REPLACE_WITH_TEAM_DOMAIN",
+    "CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_AUD",
+    "PUBLIC_WEB_ORIGIN": "https://REPLACE_WITH_PUBLIC_SITE",
+    "ACCESS_JWKS_JSON": ""
+  }
+}

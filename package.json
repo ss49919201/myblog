@@ -1,5 +1,8 @@
 {
   "name": "myblog",
   "private": true,
-  "packageManager": "pnpm@12.10.1"
+  "packageManager": "pnpm@12.10.1",
+  "scripts": {
+    "check:apps": "pnpm --filter @myblog/web typecheck && pnpm --filter @myblog/web test && pnpm --filter @myblog/web run db:schema:check && pnpm --filter @myblog/admin typecheck && pnpm --filter @myblog/admin test && pnpm --filter @myblog/admin run db:schema:check"
+  }
 }
