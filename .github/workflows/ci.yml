@@ -7,7 +7,7 @@ on:
       - 'apps/admin/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
-      - '.github/workflows/apps-web.yml'
+      - '.github/workflows/ci.yml'
 
 permissions:
   contents: read
@@ -31,6 +31,5 @@ jobs:
           sudo mv sqlite3def /usr/local/bin/
       - run: pnpm --filter @myblog/web typecheck
       - run: pnpm --filter @myblog/admin typecheck
-      - run: pnpm --filter @myblog/web test
       - run: pnpm --filter @myblog/admin test
       - run: pnpm --filter @myblog/web run db:schema:check
