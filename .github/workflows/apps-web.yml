@@ -41,7 +41,10 @@ jobs:
       - run: pnpm --filter @myblog/web test
       - run: pnpm --filter @myblog/admin test
       - run: pnpm --filter @myblog/web run db:schema:check
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: tools/go.mod
-      - run: cd tools && go run ./cmd/blog check-web-src
+      - name: web must not write to D1 in production src
+        run: |
+          if rg -n '\b(INSERT|UPDATE|DELETE|REPLACE)\b' apps/web/src -g '*.ts' -g '*.tsx'; then
+            echo 'apps/web/src must be read-only for D1 (no INSERT/UPDATE/DELETE/REPLACE)'
+            exit 1
+          fi
+          echo 'ok: no write SQL in apps/web/src'
