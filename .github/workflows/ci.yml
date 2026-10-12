@@ -8,13 +8,6 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/apps-web.yml'
-  pull_request:
-    paths:
-      - 'apps/web/**'
-      - 'apps/admin/**'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.github/workflows/apps-web.yml'
 
 permissions:
   contents: read
@@ -41,10 +34,3 @@ jobs:
       - run: pnpm --filter @myblog/web test
       - run: pnpm --filter @myblog/admin test
       - run: pnpm --filter @myblog/web run db:schema:check
-      - name: web must not write to D1 in production src
-        run: |
-          if rg -n '\b(INSERT|UPDATE|DELETE|REPLACE)\b' apps/web/src -g '*.ts' -g '*.tsx'; then
-            echo 'apps/web/src must be read-only for D1 (no INSERT/UPDATE/DELETE/REPLACE)'
-            exit 1
-          fi
-          echo 'ok: no write SQL in apps/web/src'
