@@ -2,7 +2,7 @@
 
 ## Hono SSR (`apps/web`)
 
-Cloudflare Workers 上で Hono の JSX により記事一覧と詳細を SSR します（記事はモックデータ）。
+Cloudflare Workers 上で Hono の JSX により記事一覧と詳細を SSR します（記事は D1）。
 
 ```sh
 corepack enable
