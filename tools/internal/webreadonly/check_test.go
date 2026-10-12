@@ -18,6 +18,26 @@ func TestCheckWebSrc_cleanRepo(t *testing.T) {
 	}
 }
 
+func TestCheckWebSrc_ignoresJsReplace(t *testing.T) {
+	root := t.TempDir()
+	src := filepath.Join(root, "apps", "web", "src")
+	if err := os.MkdirAll(src, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(src, "meta.ts")
+	body := "const text = bodyHtml.replace(/<[^>]+>/g, ' ')\n"
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	hits, err := CheckWebSrc(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hits) != 0 {
+		t.Fatalf("expected no hits, got %v", hits)
+	}
+}
+
 func TestCheckWebSrc_detectsInsert(t *testing.T) {
 	root := t.TempDir()
 	src := filepath.Join(root, "apps", "web", "src")
