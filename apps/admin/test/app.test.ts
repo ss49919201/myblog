@@ -1,96 +1,65 @@
 import { env, SELF } from 'cloudflare:test'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getPost } from '../../web/src/posts/repository'
-import { signAccessJwt } from './access-jwt'
 import { resetPosts } from './apply-schema'
+
+function formPostInit(body: URLSearchParams): RequestInit {
+  return {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Origin: 'http://example.com',
+      'Sec-Fetch-Site': 'same-origin',
+    },
+    body,
+  }
+}
 
 describe('admin compose', () => {
   beforeEach(async () => {
     await resetPosts()
   })
 
-  async function getFormCsrf(): Promise<{ csrf: string; cookie: string }> {
-    const jwt = await signAccessJwt()
-    const res = await SELF.fetch('http://example.com/', {
-      headers: { 'Cf-Access-Jwt-Assertion': jwt },
-    })
-    expect(res.status).toBe(200)
-    const setCookie = res.headers.get('Set-Cookie') ?? ''
-    const match = setCookie.match(/myblog_admin_csrf=([a-f0-9]+)/)
-    expect(match).not.toBeNull()
-    return {
-      csrf: match![1],
-      cookie: `myblog_admin_csrf=${match![1]}`,
-    }
-  }
-
-  it('rejects GET without JWT', async () => {
+  it('GET / returns the compose form', async () => {
     const res = await SELF.fetch('http://example.com/')
-    expect(res.status).toBe(403)
-  })
-
-  it('rejects GET with invalid JWT', async () => {
-    const res = await SELF.fetch('http://example.com/', {
-      headers: { 'Cf-Access-Jwt-Assertion': 'not-a-jwt' },
-    })
-    expect(res.status).toBe(403)
-  })
-
-  it('rejects POST without CSRF', async () => {
-    const jwt = await signAccessJwt()
-    const res = await SELF.fetch('http://example.com/', {
-      method: 'POST',
-      headers: {
-        'Cf-Access-Jwt-Assertion': jwt,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        csrf_token: 'bad',
-        title: 'Hello',
-        body_md: '**bold**',
-      }),
-    })
     expect(res.status).toBe(200)
     const html = await res.text()
-    expect(html).toContain('CSRF')
+    expect(html).toContain('本文（Markdown）')
+  })
+
+  it('rejects POST without CSRF headers', async () => {
+    const res = await SELF.fetch('http://example.com/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ title: 'Hello', body_md: 'x' }),
+    })
+    expect(res.status).toBe(403)
   })
 
   it('rejects empty title or body', async () => {
-    const jwt = await signAccessJwt()
-    const { csrf, cookie } = await getFormCsrf()
-    const res = await SELF.fetch('http://example.com/', {
-      method: 'POST',
-      headers: {
-        'Cf-Access-Jwt-Assertion': jwt,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Cookie: cookie,
-      },
-      body: new URLSearchParams({
-        csrf_token: csrf,
-        title: '  ',
-        body_md: 'x',
-      }),
-    })
+    const res = await SELF.fetch(
+      'http://example.com/',
+      formPostInit(
+        new URLSearchParams({
+          title: '  ',
+          body_md: 'x',
+        }),
+      ),
+    )
     const html = await res.text()
     expect(html).toContain('必須')
   })
 
   it('inserts a post readable by web getPost', async () => {
-    const jwt = await signAccessJwt()
-    const { csrf, cookie } = await getFormCsrf()
-    const res = await SELF.fetch('http://example.com/', {
-      method: 'POST',
-      headers: {
-        'Cf-Access-Jwt-Assertion': jwt,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Cookie: cookie,
-      },
-      body: new URLSearchParams({
-        csrf_token: csrf,
-        title: 'テスト記事',
-        body_md: '# Hi\n\n**bold**',
-      }),
-    })
+    const res = await SELF.fetch(
+      'http://example.com/',
+      formPostInit(
+        new URLSearchParams({
+          title: 'テスト記事',
+          body_md: '# Hi\n\n**bold**',
+        }),
+      ),
+    )
     expect(res.status).toBe(200)
     const html = await res.text()
     expect(html).toContain('https://blog.example.com/posts/')

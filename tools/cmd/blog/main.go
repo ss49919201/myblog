@@ -12,6 +12,7 @@ import (
 	"github.com/ss49919201/myblog/tools/internal/content"
 	"github.com/ss49919201/myblog/tools/internal/d1client"
 	syncposts "github.com/ss49919201/myblog/tools/internal/sync"
+	"github.com/ss49919201/myblog/tools/internal/webreadonly"
 )
 
 const (
@@ -30,6 +31,7 @@ var commands = []command{
 	{"new", "記事の雛形を content/posts/<slug>.md に書きます", runNew},
 	{"check", "content/posts の frontmatter を検証します", runCheck},
 	{"sync", "content/posts を HTML に変換して D1 の posts に upsert します", runSync},
+	{"check-web-src", "apps/web/src に D1 書き込み SQL が無いことを検証します", runCheckWebSrc},
 }
 
 func main() {
@@ -145,6 +147,31 @@ func runSync(root string, args []string, stdout, stderr io.Writer) int {
 		return exitFailed
 	}
 	if report.Failed > 0 {
+		return exitFailed
+	}
+	return exitOK
+}
+
+func runCheckWebSrc(root string, args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("check-web-src", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	if err := fs.Parse(args); err != nil {
+		return exitUsage
+	}
+	if len(fs.Args()) != 0 {
+		fmt.Fprintln(stderr, "blog check-web-src は位置引数を取りません")
+		return exitUsage
+	}
+	hits, err := webreadonly.CheckWebSrc(root)
+	if err != nil {
+		fmt.Fprintln(stderr, "blog check-web-src:", err)
+		return exitFailed
+	}
+	for _, h := range hits {
+		fmt.Fprintln(stdout, h)
+	}
+	if len(hits) > 0 {
+		fmt.Fprintln(stderr, "apps/web/src must be read-only for D1 (no INSERT/UPDATE/DELETE/REPLACE)")
 		return exitFailed
 	}
 	return exitOK

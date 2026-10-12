@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "hono": "4.13.13",
-    "jose": "6.1.0",
     "markdown-it": "14.1.0",
     "neverthrow": "8.2.0"
   },

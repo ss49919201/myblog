@@ -26,4 +26,4 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: tools/go.mod
-      - run: cd tools && go vet ./cmd/... ./internal/... && go test -race ./cmd/... ./internal/... && GOTOOLCHAIN=auto go run golang.org/x/tools/cmd/deadcode@v0.51.0 ./cmd/... ./internal/... | awk '{ print } END { exit NR > 0 }' && go run ./cmd/blog check
+      - run: cd tools && go vet ./cmd/... ./internal/... && go test -race ./cmd/... ./internal/... && GOTOOLCHAIN=auto go run golang.org/x/tools/cmd/deadcode@v0.51.0 ./cmd/... ./internal/... | awk '{ print } END { exit NR > 0 }' && go run ./cmd/blog check && go run ./cmd/blog check-web-src

@@ -91,7 +91,6 @@ const styles = `
 `
 
 export type ComposePageProps = {
-  csrfToken: string
   title?: string
   bodyMd?: string
   errorMessage?: string
@@ -99,7 +98,6 @@ export type ComposePageProps = {
 }
 
 export const ComposePage: FC<ComposePageProps> = ({
-  csrfToken,
   title = '',
   bodyMd = '',
   errorMessage,
@@ -126,7 +124,6 @@ export const ComposePage: FC<ComposePageProps> = ({
             </div>
           ) : null}
           <form method="post" action="/">
-            <input type="hidden" name="csrf_token" value={csrfToken} />
             <div class="field">
               <label for="title">タイトル</label>
               <input

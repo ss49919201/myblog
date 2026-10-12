@@ -6,6 +6,15 @@
 
 記事は `content/posts/<slug>.md` に置きます（`--posts-dir` で変更可能）。frontmatter（YAML）の必須キーは `title`、`slug`、`published_at` です。`published_at` は `2006-01-02`、ゾーン無しの `2006-01-02T15:04:05`、または RFC3339 です。
 
+## blog check-web-src
+
+`apps/web/src` に D1 向けの書き込み SQL（`INSERT` / `UPDATE` / `DELETE` / `REPLACE`）が無いことを検証します。CI と `.cursor/hooks.json` からも呼び出します。
+
+```bash
+cd tools
+go run ./cmd/blog check-web-src
+```
+
 ## blog check
 
 `content/posts` 内の Markdown を検証します。

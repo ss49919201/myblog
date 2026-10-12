@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      { "command": ".cursor/hooks/check-web-src.sh" }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/check-web-src.sh",
+        "matcher": "git commit"
+      }
+    ]
+  }
+}
