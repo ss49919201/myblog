@@ -8,7 +8,8 @@ import (
 	"strings"
 )
 
-var writeSQL = regexp.MustCompile(`(?i)\b(INSERT|UPDATE|DELETE|REPLACE)\b`)
+// D1 SQL in this repo uses uppercase keywords; avoid matching JS .replace() etc.
+var writeSQL = regexp.MustCompile(`\b(INSERT|UPDATE|DELETE|REPLACE)\b`)
 
 // CheckWebSrc ensures apps/web/src has no D1 write SQL (test code is out of scope).
 func CheckWebSrc(root string) ([]string, error) {
