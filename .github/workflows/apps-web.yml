@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - 'apps/web/**'
+      - 'apps/admin/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/apps-web.yml'
   pull_request:
     paths:
       - 'apps/web/**'
+      - 'apps/admin/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/apps-web.yml'
@@ -35,5 +37,14 @@ jobs:
           curl -sL https://github.com/sqldef/sqldef/releases/download/v3.11.26/sqlite3def_linux_amd64.tar.gz | tar xz
           sudo mv sqlite3def /usr/local/bin/
       - run: pnpm --filter @myblog/web typecheck
+      - run: pnpm --filter @myblog/admin typecheck
       - run: pnpm --filter @myblog/web test
+      - run: pnpm --filter @myblog/admin test
       - run: pnpm --filter @myblog/web run db:schema:check
+      - name: web must not write to D1 in production src
+        run: |
+          if rg -n '\b(INSERT|UPDATE|DELETE|REPLACE)\b' apps/web/src -g '*.ts' -g '*.tsx'; then
+            echo 'apps/web/src must be read-only for D1 (no INSERT/UPDATE/DELETE/REPLACE)'
+            exit 1
+          fi
+          echo 'ok: no write SQL in apps/web/src'
