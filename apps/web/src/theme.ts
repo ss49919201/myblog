@@ -18,11 +18,13 @@ export const ogImage = {
   width: 1200,
   height: 630,
   borderPx: 16,
+  innerRadiusPx: 16,
   paddingPx: 48,
   titleFontSizePx: 56,
   titleLineHeight: 1.35,
   titleMaxLines: 3,
   siteLabelFontSizePx: 28,
+  designVersion: 2,
 } as const
 
 export function rootCssVariables(): string {

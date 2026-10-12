@@ -4,15 +4,10 @@ on:
   push:
     paths:
       - 'apps/web/**'
+      - 'apps/admin/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
-      - '.github/workflows/apps-web.yml'
-  pull_request:
-    paths:
-      - 'apps/web/**'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.github/workflows/apps-web.yml'
+      - '.github/workflows/ci.yml'
 
 permissions:
   contents: read
@@ -35,5 +30,6 @@ jobs:
           curl -sL https://github.com/sqldef/sqldef/releases/download/v3.11.26/sqlite3def_linux_amd64.tar.gz | tar xz
           sudo mv sqlite3def /usr/local/bin/
       - run: pnpm --filter @myblog/web typecheck
-      - run: pnpm --filter @myblog/web test
+      - run: pnpm --filter @myblog/admin typecheck
+      - run: pnpm --filter @myblog/admin test
       - run: pnpm --filter @myblog/web run db:schema:check
