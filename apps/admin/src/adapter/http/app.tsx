@@ -2,9 +2,11 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { csrf } from 'hono/csrf'
 import { jsxRenderer } from 'hono/jsx-renderer'
-import type { Env } from './env'
-import { insertPost } from './posts/repository'
-import { ComposePage } from './views/ComposePage'
+import { submitPost } from '../../application/submit-post'
+import type { Env } from '../../env'
+import { ComposePage } from '../../views/ComposePage'
+import { markdownItRenderer } from '../markdown/markdown-it-renderer'
+import { createD1PostRepository } from '../persistence/d1-post-repository'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -43,11 +45,17 @@ app.post('/', csrf(), async (c) => {
   const bodyMd = typeof form.body_md === 'string' ? form.body_md : ''
 
   const publishedAt = new Date()
-  const result = await insertPost(c.env.DB, {
-    title,
-    bodyMd,
-    publishedAt,
-  })
+  const result = await submitPost(
+    {
+      posts: createD1PostRepository(c.env.DB),
+      markdown: markdownItRenderer,
+    },
+    {
+      title,
+      bodyMd,
+      publishedAt,
+    },
+  )
 
   return result.match(
     (post) =>

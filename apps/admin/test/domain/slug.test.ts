@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isValidSlug, slugFromTitle, slugWithSuffix } from '../src/posts/slug'
+import { isValidSlug, slugFromTitle, slugWithSuffix } from '../../src/domain/slug'
 
 describe('slugFromTitle', () => {
   const now = new Date('2026-10-12T12:00:00.000Z')
