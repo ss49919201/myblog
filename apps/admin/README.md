@@ -47,7 +47,7 @@ pnpm install
 pnpm --filter @myblog/admin dev
 ```
 
-ビルドとデプロイは `pnpm --filter @myblog/admin run build` / `run deploy`（`cf build` / `cf deploy`）。Wrangler バンドラー利用時は [apps/web/README.md](../web/README.md) と同様、ローカルで `wrangler` を dev 依存に入れるか Vite バンドラーへ移行してください。
+ビルドとデプロイは `pnpm --filter @myblog/admin run build` / `run deploy`（`cf build` / `cf deploy`）。Vite 設定は [apps/web](../web) と同様 `@cloudflare/vite-plugin` です。
 
 ## テスト
 

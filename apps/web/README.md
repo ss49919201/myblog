@@ -2,7 +2,7 @@
 
 Cloudflare Workers 上で動く Hono + JSX の SSR ブログ。記事は D1 に保存します。スキーマは [sqldef](https://github.com/sqldef/sqldef) の `sqlite3def` で管理します（D1 の migrations ディレクトリは使いません）。
 
-Worker の設定は [`cloudflare.config.ts`](cloudflare.config.ts)（`cf` CLI）。`.woff` の Data ルールは [`wrangler.config.ts`](wrangler.config.ts)（Wrangler バンドラー）にあります。
+Worker の設定は [`cloudflare.config.ts`](cloudflare.config.ts)（`cf` CLI）。ビルドは [`vite.config.ts`](vite.config.ts) の [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/)（`2.0.0-beta.sha-8c6014f9a`）です。OG 用 `.woff` は Vite の `?url` インポートと `fetch` で読み込みます。
 
 ## 必要条件
 
@@ -30,8 +30,6 @@ pnpm run deploy   # cf deploy
 ```
 
 初回は `cf auth login` が必要です。CI では `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を渡します。
-
-Wrangler バンドラー（`wrangler.config.ts`）を使うため、`cf dev` / `cf build` / `cf deploy` は **Wrangler 4.136 以上** をプロジェクトの dev 依存として必要です（[移行ガイド](https://developers.cloudflare.com/cf/wrangler/migrate/)）。本リポジトリでは CLI を `cf` に寄せ、`wrangler` パッケージは入れていません。ローカルで `cf build` する前に `pnpm add -D wrangler@4.149.0` するか、Vite バンドラーへ切り替えてください。
 
 `cf` がまだないコマンドは `npx wrangler` で実行します（本リポジトリでは **D1 のスキーマ export**、`wrangler tail`、**単体シークレットの `secret put`**）。詳細は [Wrangler から cf への移行](https://developers.cloudflare.com/cf/wrangler/) と [コマンド対応表](https://developers.cloudflare.com/cf/wrangler/reference/)。
 

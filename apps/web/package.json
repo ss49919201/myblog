@@ -23,9 +23,11 @@
     "workers-og": "0.0.27"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "2.0.0-beta.sha-8c6014f9a",
     "@cloudflare/workers-types": "5.20261009.1",
     "cf": "1.0.0-beta.16",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vite": "8.3.4"
   },
   "sqldefVersion": "v3.11.26"
 }
