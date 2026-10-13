@@ -9,6 +9,6 @@ const md = new MarkdownIt('default', {
 
 export const markdownItRenderer: MarkdownRenderer = {
   render(markdown: string): string {
-    return md.render(markdown).trim()
+    return md.render(markdown)
   },
 }
