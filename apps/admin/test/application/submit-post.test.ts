@@ -69,6 +69,25 @@ describe('submitPost', () => {
     }
   })
 
+  it('returns validation error for whitespace-only title', async () => {
+    const result = await submitPost(
+      {
+        posts: fakePosts(new Set(), []),
+        markdown: fakeMarkdown(''),
+      },
+      {
+        title: '   ',
+        bodyMd: 'body',
+        publishedAt,
+      },
+    )
+
+    expect(result.isErr()).toBe(true)
+    if (result.isErr()) {
+      expect(result.error.type).toBe('ValidationError')
+    }
+  })
+
   it('returns validation error for empty fields', async () => {
     const result = await submitPost(
       {

@@ -16,8 +16,8 @@ export type SubmitInput = {
 export function validateSubmitInput(
   input: SubmitInput,
 ): Result<ValidatedSubmitInput, SubmitError> {
-  const title = input.title.trim()
-  const bodyMd = input.bodyMd.trim()
+  const title = input.title
+  const bodyMd = input.bodyMd
   if (title === '' || bodyMd === '') {
     return err({
       type: 'ValidationError',

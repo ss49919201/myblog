@@ -4,7 +4,7 @@ import { validateSubmitInput } from '../../src/domain/validate-submit-input'
 describe('validateSubmitInput', () => {
   const publishedAt = new Date('2026-10-12T12:00:00.000Z')
 
-  it('trims title and body', () => {
+  it('passes through title and body unchanged', () => {
     const result = validateSubmitInput({
       title: '  hello  ',
       bodyMd: '  body  ',
@@ -12,14 +12,14 @@ describe('validateSubmitInput', () => {
     })
     expect(result.isOk()).toBe(true)
     if (result.isOk()) {
-      expect(result.value.title).toBe('hello')
-      expect(result.value.bodyMd).toBe('body')
+      expect(result.value.title).toBe('  hello  ')
+      expect(result.value.bodyMd).toBe('  body  ')
     }
   })
 
   it('rejects empty title or body', () => {
     const result = validateSubmitInput({
-      title: '   ',
+      title: '',
       bodyMd: 'x',
       publishedAt,
     })
