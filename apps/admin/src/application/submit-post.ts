@@ -29,8 +29,8 @@ export function submitPost(
   input: SubmitPostInput,
 ): ResultAsync<SubmittedPost, SubmitError> {
   const validated = validateSubmitInput({
-    title: input.title.trim(),
-    bodyMd: input.bodyMd.trim(),
+    title: input.title,
+    bodyMd: input.bodyMd,
     publishedAt: input.publishedAt,
   })
   if (validated.isErr()) {

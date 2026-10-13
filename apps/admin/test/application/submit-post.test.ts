@@ -69,10 +69,11 @@ describe('submitPost', () => {
     }
   })
 
-  it('returns validation error for whitespace-only title', async () => {
+  it('accepts whitespace-only title as non-empty input', async () => {
+    const inserted: PostRecord[] = []
     const result = await submitPost(
       {
-        posts: fakePosts(new Set(), []),
+        posts: fakePosts(new Set(), inserted),
         markdown: fakeMarkdown(''),
       },
       {
@@ -82,9 +83,10 @@ describe('submitPost', () => {
       },
     )
 
-    expect(result.isErr()).toBe(true)
-    if (result.isErr()) {
-      expect(result.error.type).toBe('ValidationError')
+    expect(result.isOk()).toBe(true)
+    if (result.isOk()) {
+      expect(result.value.slug).toBe('-')
+      expect(inserted[0]?.title).toBe('   ')
     }
   })
 

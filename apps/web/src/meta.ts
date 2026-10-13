@@ -26,7 +26,7 @@ export function absoluteUrl(
 }
 
 export function excerptFromBody(bodyHtml: string, maxLen = 160): string {
-  const text = bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  const text = bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
   if (text.length <= maxLen) {
     return text
   }

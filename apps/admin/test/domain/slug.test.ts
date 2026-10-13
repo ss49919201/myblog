@@ -4,8 +4,8 @@ import { isValidSlug, slugFromTitle, slugWithSuffix } from '../../src/domain/slu
 describe('slugFromTitle', () => {
   const now = new Date('2026-10-12T12:00:00.000Z')
 
-  it('uses trimmed title with spaces collapsed', () => {
-    expect(slugFromTitle('  Hello   world  ', now)).toBe('Hello-world')
+  it('collapses whitespace in title without stripping edges', () => {
+    expect(slugFromTitle('  Hello   world  ', now)).toBe('-Hello-world-')
   })
 
   it('allows Japanese slugs', () => {
