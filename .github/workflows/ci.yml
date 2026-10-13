@@ -7,6 +7,7 @@ on:
       - 'apps/admin/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
+      - 'package.json'
       - '.github/workflows/ci.yml'
 
 permissions:
@@ -29,7 +30,6 @@ jobs:
         run: |
           curl -sL https://github.com/sqldef/sqldef/releases/download/v3.11.26/sqlite3def_linux_amd64.tar.gz | tar xz
           sudo mv sqlite3def /usr/local/bin/
-      - run: pnpm --filter @myblog/web typecheck
-      - run: pnpm --filter @myblog/admin typecheck
-      - run: pnpm --filter @myblog/admin test
+      - run: pnpm typecheck
+      - run: pnpm test
       - run: pnpm --filter @myblog/web run db:schema:check
