@@ -168,6 +168,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@hono/valibot-validator':
+        specifier: 0.6.1
+        version: 0.6.1(hono@4.13.13)(valibot@1.5.0(typescript@6.0.3))
       hono:
         specifier: 4.13.13
         version: 4.13.13
@@ -177,6 +180,9 @@ importers:
       neverthrow:
         specifier: 8.2.0
         version: 8.2.0
+      valibot:
+        specifier: 1.5.0
+        version: 1.5.0(typescript@6.0.3)
     devDependencies:
       '@cloudflare/workers-types':
         specifier: 5.20261009.1
@@ -432,6 +438,12 @@ packages:
 
   '@fontsource/noto-sans-jp@5.3.0':
     resolution: {integrity: sha512-OZbBzZ8LrFRs2RFT2Cc0HUV2C2ZeSfyEXhDJWR0EZuZaraJfRubpvrFmUnCljuBDEkw8Vn6CE/+nf9dj9b+0lg==}
+
+  '@hono/valibot-validator@0.6.1':
+    resolution: {integrity: sha512-rqKhQJI8IVR8gRRNHHf2wGtIT7sKEqV1KoGL5f2SocNytl+tBNn4EtRu4zfk/D6axgWSswnaxeiuJhM5yNFrCg==}
+    peerDependencies:
+      hono: '>=3.9.0'
+      valibot: ^1.0.0 || ^1.0.0-beta.4 || ^1.0.0-rc
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1093,6 +1105,14 @@ packages:
   unicode-trie@2.0.0:
     resolution: {integrity: sha512-x7bc76x0bm4prf1VLg79uhAzKw8DVboClSN5VxJuQ+LKDOVEW9CdH+VY7SP+vX7xCYQqzzgQpFqz15zeLvAtZQ==}
 
+  valibot@1.5.0:
+    resolution: {integrity: sha512-nil6AkP2TChWL43Z5uJ6GTxX01CUA+g8LWUM+N/rB9NBbkUMaUsi9PUNzlUPgoKASgmx9f7eGOYpJ04/fSa6FQ==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   vite@8.3.4:
     resolution: {integrity: sha512-IftLE8phJhdNRIGNEV4JCCvfNScoZQVfcXaN8TQropWGJtOHcu+iAB9pHcuGvmEb/kddw0LBe/jS8ztdC6xdiQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -1336,6 +1356,11 @@ snapshots:
     optional: true
 
   '@fontsource/noto-sans-jp@5.3.0': {}
+
+  '@hono/valibot-validator@0.6.1(hono@4.13.13)(valibot@1.5.0(typescript@6.0.3))':
+    dependencies:
+      hono: 4.13.13
+      valibot: 1.5.0(typescript@6.0.3)
 
   '@img/colour@1.1.0': {}
 
@@ -1879,6 +1904,10 @@ snapshots:
     dependencies:
       pako: 0.2.9
       tiny-inflate: 1.0.3
+
+  valibot@1.5.0(typescript@6.0.3):
+    optionalDependencies:
+      typescript: 6.0.3
 
   vite@8.3.4(esbuild@0.28.2):
     dependencies:

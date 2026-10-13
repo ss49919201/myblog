@@ -1,32 +1,14 @@
-import { err, ok, type Result } from 'neverthrow'
-import type { SubmitError } from './errors'
+import * as v from 'valibot'
 
-export type ValidatedSubmitInput = {
-  title: string
-  bodyMd: string
-  publishedAt: Date
-}
+const requiredFieldMessage = 'タイトルと本文は必須です。'
 
-export type SubmitInput = {
-  title: string
-  bodyMd: string
-  publishedAt: Date
-}
+export const submitPostInputSchema = v.pipe(
+  v.object({
+    title: v.pipe(v.string(), v.minLength(1, requiredFieldMessage)),
+    bodyMd: v.pipe(v.string(), v.minLength(1, requiredFieldMessage)),
+    publishedAt: v.date(),
+  }),
+  v.brand('SubmitPostInput'),
+)
 
-export function validateSubmitInput(
-  input: SubmitInput,
-): Result<ValidatedSubmitInput, SubmitError> {
-  const title = input.title
-  const bodyMd = input.bodyMd
-  if (title === '' || bodyMd === '') {
-    return err({
-      type: 'ValidationError',
-      message: 'タイトルと本文は必須です。',
-    })
-  }
-  return ok({
-    title,
-    bodyMd,
-    publishedAt: input.publishedAt,
-  })
-}
+export type SubmitPostInput = v.InferOutput<typeof submitPostInputSchema>

@@ -1,1 +1,1 @@
-export { default } from './composition'
+export { default } from "./adapter/http/app";

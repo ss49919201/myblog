@@ -1,15 +1,9 @@
-import { errAsync, ResultAsync } from 'neverthrow'
+import { ResultAsync } from 'neverthrow'
 import type { SubmitError } from '../domain/errors'
 import { pickUniqueSlug } from '../domain/pick-unique-slug'
-import { validateSubmitInput } from '../domain/validate-submit-input'
+import type { SubmitPostInput } from '../domain/validate-submit-input'
 import type { MarkdownRenderer } from '../port/markdown-renderer'
 import type { PostRepository } from '../port/post-repository'
-
-export type SubmitPostInput = {
-  title: string
-  bodyMd: string
-  publishedAt: Date
-}
 
 export type SubmittedPost = {
   slug: string
@@ -28,16 +22,7 @@ export function submitPost(
   deps: SubmitPostDeps,
   input: SubmitPostInput,
 ): ResultAsync<SubmittedPost, SubmitError> {
-  const validated = validateSubmitInput({
-    title: input.title,
-    bodyMd: input.bodyMd,
-    publishedAt: input.publishedAt,
-  })
-  if (validated.isErr()) {
-    return errAsync(validated.error)
-  }
-
-  const { title, bodyMd, publishedAt } = validated.value
+  const { title, bodyMd, publishedAt } = input
   const bodyHtml = deps.markdown.render(bodyMd)
 
   return ResultAsync.fromPromise(
