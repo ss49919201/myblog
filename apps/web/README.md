@@ -104,7 +104,7 @@ pnpm --filter @myblog/web run db:schema:check
 
 Cloudflare の Worker バインディングには読み取り専用モードはないため、次の 3 層で守ります。
 
-1. **型（Kysely）** … `Env.DB` は `ReadOnlyKysely<Database>`（`selectFrom` / `with` のみ）。`Kysely` と `D1Database` は `composition-root.ts` だけで束ねる。
+1. **型（Kysely）** … `Env.DB` は `ReadOnlyKysely<Database>`（`selectFrom` のみ。`with` は書き込み CTE 経由の抜け道になるため除外）。`Kysely` と `D1Database` は `composition-root.ts` だけで束ねる。
 2. **クエリ** … `src/posts/repository.ts` は Kysely の型付きビルダーだけを使い、生 SQL 文字列は置かない。
 3. **CI** … リポジトリルートの `pnpm run lint:ast`（`@ast-grep/napi` の TypeScript ルール）で `composition-root.ts` 以外の `D1Database` / `Kysely` 利用を禁止する。
 

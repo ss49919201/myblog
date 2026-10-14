@@ -24,9 +24,6 @@ function fakeReadOnlyDb(rows: PostRow[]): ReadOnlyKysely<Database> {
   }
   return {
     selectFrom: () => chain,
-    with: () => {
-      throw new Error('not used in tests')
-    },
   } as unknown as ReadOnlyKysely<Database>
 }
 

@@ -1,3 +1,3 @@
 import type { Kysely } from 'kysely'
 
-export type ReadOnlyKysely<DB> = Pick<Kysely<DB>, 'selectFrom' | 'with'>
+export type ReadOnlyKysely<DB> = Pick<Kysely<DB>, 'selectFrom'>

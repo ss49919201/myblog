@@ -9,6 +9,5 @@ export function createWebDatabase(d1: D1Database): ReadOnlyKysely<Database> {
   })
   return {
     selectFrom: kysely.selectFrom.bind(kysely),
-    with: kysely.with.bind(kysely),
   }
 }
