@@ -197,8 +197,8 @@ importers:
   apps/web:
     dependencies:
       '@fontsource/noto-sans-jp':
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       hono:
         specifier: 4.13.13
         version: 4.13.13
@@ -430,8 +430,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fontsource/noto-sans-jp@5.3.0':
-    resolution: {integrity: sha512-OZbBzZ8LrFRs2RFT2Cc0HUV2C2ZeSfyEXhDJWR0EZuZaraJfRubpvrFmUnCljuBDEkw8Vn6CE/+nf9dj9b+0lg==}
+  '@fontsource/noto-sans-jp@5.3.1':
+    resolution: {integrity: sha512-9NNBB/M9PextLYVXGSfIaLZsPnrt5UDw8g2B6T0M775H2yb/oekApSjuS1XKOP7FPcMMEnTavR5rJGDM66qKtA==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1335,7 +1335,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@fontsource/noto-sans-jp@5.3.0': {}
+  '@fontsource/noto-sans-jp@5.3.1': {}
 
   '@img/colour@1.1.0': {}
 
