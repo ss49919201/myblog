@@ -1,0 +1,8 @@
+id: web-no-raw-d1-database
+valid:
+  - |
+    import type { ReadOnlyD1 } from './db/read-only-d1'
+    export function listPosts(db: ReadOnlyD1) {}
+invalid:
+  - |
+    export function listPosts(db: D1Database) {}

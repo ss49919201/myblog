@@ -1,0 +1,5 @@
+id: web-no-write-sql
+valid:
+  - 'const sql = "SELECT slug FROM posts"'
+invalid:
+  - 'const sql = "INSERT INTO posts (slug) VALUES (?)"'

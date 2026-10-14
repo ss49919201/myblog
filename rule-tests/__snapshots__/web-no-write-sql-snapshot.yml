@@ -1,0 +1,8 @@
+id: web-no-write-sql
+snapshots:
+  const sql = "INSERT INTO posts (slug) VALUES (?)":
+    labels:
+    - source: '"INSERT INTO posts (slug) VALUES (?)"'
+      style: primary
+      start: 12
+      end: 49

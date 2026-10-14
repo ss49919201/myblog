@@ -1,4 +1,5 @@
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
+import type { ReadOnlyD1 } from '../db/read-only-d1'
 import type { PostsError } from './errors'
 import type { Post } from './types'
 
@@ -18,28 +19,33 @@ function mapRow(row: PostRow): Post {
   }
 }
 
-export function listPosts(db: D1Database): ResultAsync<Post[], PostsError> {
+export function listPosts(db: ReadOnlyD1): ResultAsync<Post[], PostsError> {
+  const prepared = db.prepare(
+    'SELECT slug, title, published_at, body_html FROM posts ORDER BY published_at DESC',
+  )
+  if (prepared.isErr()) {
+    return errAsync({ type: 'StorageError', cause: prepared.error })
+  }
+
   return ResultAsync.fromPromise(
-    db
-      .prepare(
-        'SELECT slug, title, published_at, body_html FROM posts ORDER BY published_at DESC',
-      )
-      .all<PostRow>(),
+    prepared.value.all<PostRow>(),
     (cause) => ({ type: 'StorageError', cause }) satisfies PostsError,
   ).map((response) => response.results.map(mapRow))
 }
 
 export function getPost(
-  db: D1Database,
+  db: ReadOnlyD1,
   slug: string,
 ): ResultAsync<Post, PostsError> {
+  const prepared = db.prepare(
+    'SELECT slug, title, published_at, body_html FROM posts WHERE slug = ?',
+  )
+  if (prepared.isErr()) {
+    return errAsync({ type: 'StorageError', cause: prepared.error })
+  }
+
   return ResultAsync.fromPromise(
-    db
-      .prepare(
-        'SELECT slug, title, published_at, body_html FROM posts WHERE slug = ?',
-      )
-      .bind(slug)
-      .first<PostRow>(),
+    prepared.value.bind(slug).first<PostRow>(),
     (cause) => ({ type: 'StorageError', cause }) satisfies PostsError,
   ).andThen((row) => {
     if (row === null) {

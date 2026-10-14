@@ -95,6 +95,16 @@ pnpm --filter @myblog/web typecheck
 pnpm --filter @myblog/web run db:schema:check
 ```
 
+## D1 は読み取り専用
+
+公開 Worker（`apps/web`）は同じ D1 を **読むだけ** です。入稿・更新は `apps/admin` だけが行います。
+
+Cloudflare の Worker バインディングには読み取り専用モードはないため、次の 3 層で守ります。
+
+1. **型** … `Env.DB` は `ReadOnlyD1`（`src/db/read-only-d1.ts`）。`D1Database` は Worker 入口の `toAppEnv` でラップするだけ。
+2. **実行時** … ラッパーは `SELECT` / `WITH` / `EXPLAIN` 以外の SQL を `neverthrow` で拒否する。
+3. **CI** … リポジトリルートの [ast-grep](https://github.com/ast-grep/ast-grep) ルール（`pnpm run lint:ast`）で `apps/web/src` の `D1Database` 直参照と書き込み SQL を禁止する。
+
 ## ルート
 
 | パス | 内容 |
@@ -102,4 +112,4 @@ pnpm --filter @myblog/web run db:schema:check
 | `/` | 記事一覧（新しい順） |
 | `/posts/:slug` | 記事詳細。存在しない slug は 404 |
 
-記事の取得は `src/posts/repository.ts` の `listPosts` / `getPost`（D1 バインディング `DB`）経由です。
+記事の取得は `src/posts/repository.ts` の `listPosts` / `getPost`（`ReadOnlyD1` の `DB`）経由です。

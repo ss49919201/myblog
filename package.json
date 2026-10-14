@@ -1,5 +1,11 @@
 {
   "name": "myblog",
   "private": true,
-  "packageManager": "pnpm@12.10.1"
+  "packageManager": "pnpm@12.10.1",
+  "devDependencies": {
+    "@ast-grep/cli": "0.50.0"
+  },
+  "scripts": {
+    "lint:ast": "ast-grep test && ast-grep scan"
+  }
 }

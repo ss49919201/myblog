@@ -1,0 +1,14 @@
+id: admin-domain-no-infrastructure-imports
+language: TypeScript
+files:
+  - apps/admin/src/domain/**/*.ts
+rule:
+  kind: import_statement
+  any:
+    - regex: from\s+['"]hono
+    - regex: from\s+['"]markdown-it
+    - regex: from\s+['"]jose
+    - regex: D1Database
+message: >-
+  apps/admin/src/domain must not import hono, markdown-it, jose, or D1Database.
+  Keep domain logic free of framework and persistence details.
