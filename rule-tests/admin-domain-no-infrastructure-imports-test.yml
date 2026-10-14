@@ -1,5 +1,0 @@
-id: admin-domain-no-infrastructure-imports
-valid:
-  - "import { slugify } from './slug'"
-invalid:
-  - "import { Hono } from 'hono'"

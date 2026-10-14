@@ -1,9 +1,0 @@
-id: web-no-raw-d1-database
-snapshots:
-  ? |
-    export function listPosts(db: D1Database) {}
-  : labels:
-    - source: D1Database
-      style: primary
-      start: 30
-      end: 40

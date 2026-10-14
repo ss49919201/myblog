@@ -1,13 +1,15 @@
-import { createReadOnlyD1, type ReadOnlyD1 } from './db/read-only-d1'
+import { createWebDatabase } from './composition-root'
+import type { ReadOnlyKysely } from './db/read-only-kysely'
+import type { Database } from './db/schema'
 
 export type Env = {
-  DB: ReadOnlyD1
+  DB: ReadOnlyKysely<Database>
   SITE_ORIGIN?: string
 }
 
 export function toAppEnv(worker: Cloudflare.Env): Env {
   return {
-    DB: createReadOnlyD1(worker.DB),
+    DB: createWebDatabase(worker.DB),
     SITE_ORIGIN: worker.SITE_ORIGIN,
   }
 }

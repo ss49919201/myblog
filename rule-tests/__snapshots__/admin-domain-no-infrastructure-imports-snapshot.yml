@@ -1,8 +1,0 @@
-id: admin-domain-no-infrastructure-imports
-snapshots:
-  import { Hono } from 'hono':
-    labels:
-    - source: import { Hono } from 'hono'
-      style: primary
-      start: 0
-      end: 27
