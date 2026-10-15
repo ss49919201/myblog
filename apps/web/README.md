@@ -1,10 +1,12 @@
 # @myblog/web
 
-Cloudflare Workers 上で動く Hono + JSX の SSR ブログ。記事は D1 に保存します。スキーマは [sqldef](https://github.com/sqldef/sqldef) の `sqlite3def` で管理します（Wrangler の migrations は使いません）。
+Cloudflare Workers 上で動く Hono + JSX の SSR ブログ。記事は D1 に保存します。スキーマは [sqldef](https://github.com/sqldef/sqldef) の `sqlite3def` で管理します（D1 の migrations ディレクトリは使いません）。
+
+Worker の設定は [`cloudflare.config.ts`](cloudflare.config.ts)（`cf` CLI）。ビルドは [`vite.config.ts`](vite.config.ts) の [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/)（`2.0.0-beta.sha-8c6014f9a`）です。OG 用 `.woff` は Vite の `?url` インポートと `fetch` で読み込みます。
 
 ## 必要条件
 
-- Node.js 22.12 以上（リポジトリルートの `.nvmrc`）
+- Node.js **22.18 以上**（`cf` が `cloudflare.config.ts` を読むため。リポジトリルートの `.nvmrc` は 22.19）
 - pnpm 12.10.1（リポジトリルートの `packageManager`）
 - [`sqlite3def`](https://github.com/sqldef/sqldef/releases) **v3.11.26**（`apps/web/package.json` の `sqldefVersion` と揃える）
 
@@ -16,17 +18,32 @@ sudo mv sqlite3def /usr/local/bin/
 sqlite3def --version
 ```
 
+## Cloudflare CLI（`cf`）
+
+開発・ビルド・デプロイは [`cf`](https://developers.cloudflare.com/cf/) を使います。
+
+```sh
+cd apps/web
+pnpm run dev      # cf dev（ローカル D1 は --local 付きの db スクリプトと同じ永続化）
+pnpm run build    # cf build
+pnpm run deploy   # cf deploy
+```
+
+初回は `cf auth login` が必要です。CI では `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を渡します。
+
+`cf` がまだないコマンドは `npx wrangler` で実行します（本リポジトリでは **D1 のスキーマ export**、`wrangler tail`、**単体シークレットの `secret put`**）。詳細は [Wrangler から cf への移行](https://developers.cloudflare.com/cf/wrangler/) と [コマンド対応表](https://developers.cloudflare.com/cf/wrangler/reference/)。
+
 ## Cloudflare D1 の作成（本番）
 
-1. `wrangler.jsonc` の `database_id` が `REPLACE_WITH_PRODUCTION_DATABASE_ID` のままなら、本番用 ID に差し替えます。
+1. `cloudflare.config.ts` の D1 `id` が `REPLACE_WITH_PRODUCTION_DATABASE_ID` のままなら、本番用 ID に差し替えます（`package.json` の `db:*` スクリプト内の同じ文字列も揃えます）。`wrangler.jsonc` の `database_id` も export 用に同期します。
 2. リモート DB を作成します。
 
 ```sh
 cd apps/web
-pnpm exec wrangler d1 create myblog-web
+pnpm exec cf d1 create --name myblog-web
 ```
 
-表示された `database_id` を `wrangler.jsonc` の `d1_databases[0].database_id` に書き込みます。
+表示された ID を `cloudflare.config.ts` の `bindings.d1({ id: ... })` に書き込みます。
 
 ## セットアップと起動
 
@@ -46,7 +63,7 @@ cd apps/web
 pnpm run db:local:touch
 ```
 
-2. 差分を確認してから `schema.sql` を適用します（ローカル D1 は export → sqldef → `wrangler d1 execute`）。
+2. 差分を確認してから `schema.sql` を適用します（ローカル D1 は export → sqldef → `cf d1 raw --local`）。
 
 ```sh
 pnpm run db:local:plan
@@ -69,7 +86,7 @@ pnpm --filter @myblog/web dev
 
 ### スキーマ変更（ローカル）
 
-`schema.sql` を編集したあと、`pnpm run db:local:plan` で差分 DDL を確認し、`pnpm run db:local:apply` で適用します。Wrangler のローカル D1 は内部メタデータテーブルを含むため、sqldef は SQLite ファイルを直接開かず、export した SQL を `current` として差分計算します。`db:local:apply` は sqldef が出力する `BEGIN` / `COMMIT` を除いてから `wrangler d1 execute --local` に渡します。
+`schema.sql` を編集したあと、`pnpm run db:local:plan` で差分 DDL を確認し、`pnpm run db:local:apply` で適用します。ローカル D1 は内部メタデータテーブルを含むため、sqldef は SQLite ファイルを直接開かず、`npx wrangler d1 export --local` で export した SQL を `current` として差分計算します。`db:local:apply` は sqldef が出力する `BEGIN` / `COMMIT` を除いてから `cf d1 raw --local` に渡します。
 
 ### スキーマ変更（リモート）
 
@@ -86,7 +103,7 @@ pnpm run db:remote:plan
 pnpm run db:remote:apply
 ```
 
-`db:remote:plan` は `wrangler d1 export --remote --no-data` で現在のスキーマを取り、`sqlite3def` の `--dry-run` でマイグレーション SQL を標準出力に出します。`db:remote:apply` はトランザクション行を除いた DDL を `/tmp/myblog-web-migrate.sql` に書き、`wrangler d1 execute --remote --file` で実行します。
+`db:remote:plan` は `npx wrangler d1 export --remote --no-data` で現在のスキーマを取り、`sqlite3def` の `--dry-run` でマイグレーション SQL を標準出力に出します。`db:remote:apply` はトランザクション行を除いた DDL を `/tmp/myblog-web-migrate.sql` に書き、`cf d1 query`（リモート既定）で実行します。
 
 ## チェック
 

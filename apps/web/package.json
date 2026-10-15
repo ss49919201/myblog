@@ -4,15 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "cf dev",
+    "build": "cf build",
+    "deploy": "cf deploy",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:local:touch": "wrangler d1 execute myblog-web --local --command \"SELECT 1\"",
-    "db:local:plan": "wrangler d1 export myblog-web --local --no-data --output /tmp/myblog-web-local-current.sql && sqlite3def /tmp/myblog-web-local-current.sql -f schema.sql --dry-run",
-    "db:local:apply": "wrangler d1 export myblog-web --local --no-data --output /tmp/myblog-web-local-current.sql && sqlite3def /tmp/myblog-web-local-current.sql -f schema.sql --dry-run | grep -vE '^(-- dry run --|BEGIN;|COMMIT;)$' > /tmp/myblog-web-local-migrate.sql && if [ -s /tmp/myblog-web-local-migrate.sql ]; then wrangler d1 execute myblog-web --local --file /tmp/myblog-web-local-migrate.sql; else echo 'schema already matches'; fi",
-    "db:local:seed": "wrangler d1 execute myblog-web --local --file seed.sql",
-    "db:remote:plan": "wrangler d1 export myblog-web --remote --no-data --output /tmp/myblog-web-current.sql && sqlite3def /tmp/myblog-web-current.sql -f schema.sql --dry-run",
-    "db:remote:apply": "wrangler d1 export myblog-web --remote --no-data --output /tmp/myblog-web-current.sql && sqlite3def /tmp/myblog-web-current.sql -f schema.sql --dry-run | grep -vE '^(-- dry run --|BEGIN;|COMMIT;)$' > /tmp/myblog-web-migrate.sql && if [ -s /tmp/myblog-web-migrate.sql ]; then wrangler d1 execute myblog-web --remote --file /tmp/myblog-web-migrate.sql; else echo 'schema already matches'; fi",
+    "db:local:touch": "cf d1 raw REPLACE_WITH_PRODUCTION_DATABASE_ID --local --sql \"SELECT 1\"",
+    "db:local:plan": "npx wrangler d1 export myblog-web --local --no-data --output /tmp/myblog-web-local-current.sql && sqlite3def /tmp/myblog-web-local-current.sql -f schema.sql --dry-run",
+    "db:local:apply": "npx wrangler d1 export myblog-web --local --no-data --output /tmp/myblog-web-local-current.sql && sqlite3def /tmp/myblog-web-local-current.sql -f schema.sql --dry-run | grep -vE '^(-- dry run --|BEGIN;|COMMIT;)$' > /tmp/myblog-web-local-migrate.sql && if [ -s /tmp/myblog-web-local-migrate.sql ]; then cf d1 raw REPLACE_WITH_PRODUCTION_DATABASE_ID --local --sql \"$(cat /tmp/myblog-web-local-migrate.sql)\"; else echo 'schema already matches'; fi",
+    "db:local:seed": "cf d1 raw REPLACE_WITH_PRODUCTION_DATABASE_ID --local --sql \"$(cat seed.sql)\"",
+    "db:remote:plan": "npx wrangler d1 export myblog-web --remote --no-data --output /tmp/myblog-web-current.sql && sqlite3def /tmp/myblog-web-current.sql -f schema.sql --dry-run",
+    "db:remote:apply": "npx wrangler d1 export myblog-web --remote --no-data --output /tmp/myblog-web-current.sql && sqlite3def /tmp/myblog-web-current.sql -f schema.sql --dry-run | grep -vE '^(-- dry run --|BEGIN;|COMMIT;)$' > /tmp/myblog-web-migrate.sql && if [ -s /tmp/myblog-web-migrate.sql ]; then cf d1 query REPLACE_WITH_PRODUCTION_DATABASE_ID --sql \"$(cat /tmp/myblog-web-migrate.sql)\"; else echo 'schema already matches'; fi",
     "db:schema:check": "rm -f /tmp/myblog-web-schema-check.sqlite && sqlite3def /tmp/myblog-web-schema-check.sqlite --apply -f schema.sql && sqlite3def /tmp/myblog-web-schema-check.sqlite -f schema.sql --check"
   },
   "dependencies": {
@@ -24,10 +26,12 @@
     "workers-og": "0.0.27"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "2.0.0-beta.sha-8c6014f9a",
     "@cloudflare/workers-types": "5.20261009.1",
+    "cf": "1.0.0-beta.16",
     "typescript": "6.0.3",
-    "vitest": "5.0.3",
-    "wrangler": "4.149.0"
+    "vite": "8.3.4",
+    "vitest": "5.0.3"
   },
   "sqldefVersion": "v3.11.26"
 }

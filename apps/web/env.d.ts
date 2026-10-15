@@ -5,7 +5,7 @@ declare namespace Cloudflare {
   }
 }
 
-declare module '*.woff' {
-  const value: ArrayBuffer
+declare module '*.woff?url' {
+  const value: string
   export default value
 }

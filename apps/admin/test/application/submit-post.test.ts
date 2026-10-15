@@ -1,5 +1,7 @@
+import * as v from 'valibot'
 import { describe, expect, it } from 'vitest'
 import { submitPost } from '../../src/application/submit-post'
+import { submitPostInputSchema } from '../../src/domain/validate-submit-input'
 import type { MarkdownRenderer } from '../../src/port/markdown-renderer'
 import type { PostRecord, PostRepository } from '../../src/port/post-repository'
 
@@ -33,11 +35,11 @@ describe('submitPost', () => {
         posts: fakePosts(new Set(), inserted),
         markdown: fakeMarkdown('<p>hi</p>'),
       },
-      {
+      v.parse(submitPostInputSchema, {
         title: 'Hello',
         bodyMd: 'hi',
         publishedAt,
-      },
+      }),
     )
 
     expect(result.isOk()).toBe(true)
@@ -56,11 +58,11 @@ describe('submitPost', () => {
         posts: fakePosts(new Set(['Hello']), inserted),
         markdown: fakeMarkdown(''),
       },
-      {
+      v.parse(submitPostInputSchema, {
         title: 'Hello',
         bodyMd: 'body',
         publishedAt,
-      },
+      }),
     )
 
     expect(result.isOk()).toBe(true)
@@ -76,36 +78,17 @@ describe('submitPost', () => {
         posts: fakePosts(new Set(), inserted),
         markdown: fakeMarkdown(''),
       },
-      {
+      v.parse(submitPostInputSchema, {
         title: '   ',
         bodyMd: 'body',
         publishedAt,
-      },
+      }),
     )
 
     expect(result.isOk()).toBe(true)
     if (result.isOk()) {
       expect(result.value.slug).toBe('-')
       expect(inserted[0]?.title).toBe('   ')
-    }
-  })
-
-  it('returns validation error for empty fields', async () => {
-    const result = await submitPost(
-      {
-        posts: fakePosts(new Set(), []),
-        markdown: fakeMarkdown(''),
-      },
-      {
-        title: '',
-        bodyMd: '',
-        publishedAt,
-      },
-    )
-
-    expect(result.isErr()).toBe(true)
-    if (result.isErr()) {
-      expect(result.error.type).toBe('ValidationError')
     }
   })
 })
