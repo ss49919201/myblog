@@ -8,7 +8,7 @@ export function isValidSlug(slug: string): boolean {
 }
 
 function baseSlugFromTitle(title: string): string {
-  const collapsed = title.trim().replace(/\s+/g, '-')
+  const collapsed = title.replace(/\s+/g, '-')
   const stripped = collapsed.replace(FORBIDDEN_SLUG, '').replace(/^\.+|\.+$/g, '')
   return stripped
 }

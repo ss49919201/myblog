@@ -18,9 +18,11 @@
 | 名前 | 種別 | 説明 |
 |------|------|------|
 | `PUBLIC_WEB_URL` | var | 公開サイトの origin（成功時に記事 URL を組み立てる） |
-| D1 `DB` | binding | `apps/web` と同じ `database_id` |
+| D1 `DB` | binding | `apps/web` と同じ database ID |
 
-`wrangler.jsonc` の `vars` と `d1_databases.database_id` を本番値に差し替えてから `wrangler deploy` します。
+[`cloudflare.config.ts`](cloudflare.config.ts) の `PUBLIC_WEB_URL` と D1 `id` を本番値に差し替えてから `pnpm run deploy`（`cf deploy`）します。
+
+単体シークレットは `cf` 未対応のため `npx wrangler secret put <NAME> --name myblog-admin` を使います（[参考](https://developers.cloudflare.com/cf/wrangler/reference/)）。
 
 ## CSRF
 
@@ -44,6 +46,8 @@ pnpm run db:remote:apply
 pnpm install
 pnpm --filter @myblog/admin dev
 ```
+
+ビルドとデプロイは `pnpm --filter @myblog/admin run build` / `run deploy`（`cf build` / `cf deploy`）。Vite 設定は [apps/web](../web) と同様 `@cloudflare/vite-plugin` です。
 
 ## テスト
 
