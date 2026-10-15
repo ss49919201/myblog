@@ -7,6 +7,7 @@ on:
       - 'apps/admin/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
+      - 'package.json'
       - '.github/workflows/ci.yml'
 
 permissions:
@@ -27,9 +28,8 @@ jobs:
         run: |
           curl -sL https://github.com/sqldef/sqldef/releases/download/v3.11.26/sqlite3def_linux_amd64.tar.gz | tar xz
           sudo mv sqlite3def /usr/local/bin/
-      - run: pnpm --filter @myblog/web typecheck
-      - run: pnpm --filter @myblog/admin typecheck
-      - run: pnpm --filter @myblog/admin test
+      - run: pnpm typecheck
+      - run: pnpm test
       - run: if rg -n "from .hono|from .markdown-it|from .jose|D1Database" apps/admin/src/domain -g "*.ts"; then exit 1; fi
       - run: if rg -n "\b(INSERT|UPDATE|DELETE|REPLACE)\b" apps/web/src -g "*.ts" -g "*.tsx"; then exit 1; fi
       - run: pnpm --filter @myblog/web run db:schema:check
