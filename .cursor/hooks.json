@@ -2,6 +2,7 @@
   "version": 1,
   "hooks": {
     "stop": [
+      { "command": ".cursor/hooks/check-cf-node.sh" },
       { "command": ".cursor/hooks/check-web-src.sh" }
     ],
     "beforeShellExecution": [

@@ -19,7 +19,7 @@ INSERT INTO posts (slug, title, published_at, body_html) VALUES
 ),
 (
   'workers-dev',
-  'ローカルでは wrangler dev',
+  'ローカルでは cf dev',
   '2026-09-28T01:15:00.000Z',
-  '<p>pnpm install のあと、apps/web で wrangler dev を実行すると Workers と同じルーティングを手元で確認できます。</p><p>テストは Hono の app.request で HTTP レイヤをそのままたたきます。</p>'
+  '<p>pnpm install のあと、apps/web で pnpm run dev（cf dev）を実行すると Workers と同じルーティングを手元で確認できます。</p><p>テストは Hono の app.request で HTTP レイヤをそのままたたきます。</p>'
 );

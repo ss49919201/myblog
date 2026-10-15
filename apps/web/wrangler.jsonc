@@ -1,14 +1,7 @@
 {
-  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // Used only by `npx wrangler d1 export` (not supported by `cf`). Keep `database_id` in sync with `cloudflare.config.ts`.
   "name": "myblog-web",
-  "main": "src/index.ts",
   "compatibility_date": "2026-10-08",
-  "rules": [
-    {
-      "type": "Data",
-      "globs": ["**/*.woff"]
-    }
-  ],
   "d1_databases": [
     {
       "binding": "DB",
