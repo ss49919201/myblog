@@ -1,5 +1,15 @@
 {
   "name": "myblog",
   "private": true,
-  "packageManager": "pnpm@12.10.1"
+  "packageManager": "pnpm@12.10.1",
+  "devDependencies": {
+    "@ast-grep/napi": "0.50.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  },
+  "scripts": {
+    "lint:ast": "tsx scripts/lint-ast/run.ts",
+    "test": "vitest run"
+  }
 }

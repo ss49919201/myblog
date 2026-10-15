@@ -2,6 +2,7 @@ packages:
   - apps/*
 
 allowBuilds:
+  '@ast-grep/napi': true
   esbuild: true
   workerd: true
 
