@@ -17,7 +17,7 @@
     "db:schema:check": "rm -f /tmp/myblog-web-schema-check.sqlite && sqlite3def /tmp/myblog-web-schema-check.sqlite --apply -f schema.sql && sqlite3def /tmp/myblog-web-schema-check.sqlite -f schema.sql --check"
   },
   "dependencies": {
-    "@fontsource/noto-sans-jp": "5.3.0",
+    "@fontsource/noto-sans-jp": "5.3.1",
     "hono": "4.13.13",
     "neverthrow": "8.2.0",
     "workers-og": "0.0.27"
