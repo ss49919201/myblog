@@ -188,8 +188,8 @@ importers:
         specifier: 2.0.0-beta.sha-8c6014f9a
         version: 2.0.0-beta.sha-8c6014f9a(vite@8.3.4(esbuild@0.28.2))(workerd@1.20261006.1)
       '@cloudflare/workers-types':
-        specifier: 5.20261009.1
-        version: 5.20261009.1
+        specifier: 5.20261016.1
+        version: 5.20261016.1
       '@types/markdown-it':
         specifier: 14.1.2
         version: 14.1.2
@@ -225,8 +225,8 @@ importers:
         specifier: 2.0.0-beta.sha-8c6014f9a
         version: 2.0.0-beta.sha-8c6014f9a(vite@8.3.4(esbuild@0.28.2))(workerd@1.20261006.1)
       '@cloudflare/workers-types':
-        specifier: 5.20261009.1
-        version: 5.20261009.1
+        specifier: 5.20261016.1
+        version: 5.20261016.1
       cf:
         specifier: 1.0.0-beta.16
         version: 1.0.0-beta.16
@@ -297,8 +297,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@cloudflare/workers-types@5.20261009.1':
-    resolution: {integrity: sha512-Oa/7pS2upeCKG0lEvPSGHLK8B8sx3lPanEaXDlOj13H6HfZV5agBeHq5A1VtJj+/x9dXuMJpHTg7U7kTYt4xDA==}
+  '@cloudflare/workers-types@5.20261016.1':
+    resolution: {integrity: sha512-I8OJdPl3M6TIl9ksU3wtEyWVhSE8E8txJ/vGOv3SkhjcvN8uMjyFmMvRsNOZgzMe5xYFQ0LctmiGqTwR7DbZ6w==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -1324,7 +1324,7 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20261006.1':
     optional: true
 
-  '@cloudflare/workers-types@5.20261009.1': {}
+  '@cloudflare/workers-types@5.20261016.1': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
