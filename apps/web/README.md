@@ -109,8 +109,21 @@ pnpm run db:remote:apply
 
 ```sh
 pnpm --filter @myblog/web typecheck
+pnpm --filter @myblog/web test
 pnpm --filter @myblog/web run db:schema:check
 ```
+
+`typecheck` は `test/types/write-guard.typetest.ts` の `@ts-expect-error` も検証し、公開側で Kysely の書き込み API がコンパイルできないことを保証します。
+
+## D1 は読み取り専用
+
+公開 Worker（`apps/web`）は同じ D1 を **読むだけ** です。入稿・更新は `apps/admin` だけが行います。
+
+Cloudflare の Worker バインディングには読み取り専用モードはないため、次の 3 層で守ります。
+
+1. **型（Kysely）** … `Env.DB` は `ReadOnlyKysely<Database>`（`selectFrom` のみ。`with` は書き込み CTE 経由の抜け道になるため除外）。`Kysely` と `D1Database` は `composition-root.ts` だけで束ねる。
+2. **クエリ** … `src/posts/repository.ts` は Kysely の型付きビルダーだけを使い、生 SQL 文字列は置かない。
+3. **CI** … リポジトリルートの `pnpm run lint:ast`（`@ast-grep/napi` の TypeScript ルール）で `composition-root.ts` 以外の `D1Database` / `Kysely` 利用を禁止する。
 
 ## ルート
 
@@ -119,4 +132,4 @@ pnpm --filter @myblog/web run db:schema:check
 | `/` | 記事一覧（新しい順） |
 | `/posts/:slug` | 記事詳細。存在しない slug は 404 |
 
-記事の取得は `src/posts/repository.ts` の `listPosts` / `getPost`（D1 バインディング `DB`）経由です。
+記事の取得は `src/posts/repository.ts` の `listPosts` / `getPost`（`ReadOnlyKysely` の `DB`）経由です。
