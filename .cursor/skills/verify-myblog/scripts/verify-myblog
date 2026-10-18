@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
+
+usage() {
+  cat <<'EOF'
+Usage: verify-myblog <command>
+
+Commands:
+  launch     Start local web + admin workers, prepare isolated local D1, write state.
+  doctor     Read-only health check for a launch started by this run.
+  drive      Drive one mapped feature (default: submit-post). Captures evidence.
+  cleanup    Stop workers and remove scratch state. Keeps evidence artifacts.
+
+Environment:
+  MYBLOG_VERIFY_RUN_ID   Reuse or name a run directory under artifacts/verify-myblog/.
+  MYBLOG_WEB_PORT        Public web dev port (default 5173).
+  MYBLOG_ADMIN_PORT      Admin dev port (default 5174).
+EOF
+}
+
+cmd_launch() {
+  myblog_export_node
+  : "${MYBLOG_VERIFY_RUN_ID:=$(date -u +%Y%m%dT%H%M%SZ)-$(printf '%04x' $$)}"
+  export MYBLOG_VERIFY_RUN_ID
+  local run_dir persist artifacts
+  run_dir="$(myblog_run_dir)"
+  persist="$(myblog_persist_dir)"
+  artifacts="$(myblog_artifacts_dir)"
+  export MYBLOG_PERSIST_STATE="$persist"
+  mkdir -p "$artifacts" "$persist"
+
+  echo "Run id: ${MYBLOG_VERIFY_RUN_ID}"
+  echo "Persist: ${MYBLOG_PERSIST_STATE}"
+  echo "Evidence: ${artifacts}"
+
+  cd "${REPO_ROOT}/apps/web"
+  npx wrangler d1 execute myblog-web --local --persist-to "$MYBLOG_PERSIST_STATE" --file schema.sql
+  npx wrangler d1 execute myblog-web --local --persist-to "$MYBLOG_PERSIST_STATE" --file seed.sql
+
+  local admin_dev_vars="${REPO_ROOT}/apps/admin/.dev.vars"
+  if [[ -f "$admin_dev_vars" ]]; then
+    MYBLOG_ADMIN_DEV_VARS_BACKUP="$(mktemp)"
+    cp "$admin_dev_vars" "$MYBLOG_ADMIN_DEV_VARS_BACKUP"
+  else
+    MYBLOG_ADMIN_DEV_VARS_BACKUP=""
+  fi
+  printf 'PUBLIC_WEB_URL=%s\n' "$MYBLOG_WEB_URL" >"$admin_dev_vars"
+
+  export MYBLOG_WEB_TMUX="verify-myblog-web-${MYBLOG_VERIFY_RUN_ID}"
+  export MYBLOG_ADMIN_TMUX="verify-myblog-admin-${MYBLOG_VERIFY_RUN_ID}"
+
+  tmux -f /exec-daemon/tmux.portal.conf kill-session -t "=${MYBLOG_WEB_TMUX}" 2>/dev/null || true
+  tmux -f /exec-daemon/tmux.portal.conf kill-session -t "=${MYBLOG_ADMIN_TMUX}" 2>/dev/null || true
+
+  tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$MYBLOG_WEB_TMUX" -c "${REPO_ROOT}/apps/web" -- "${SHELL:-bash}" -l
+  tmux -f /exec-daemon/tmux.portal.conf send-keys -t "${MYBLOG_WEB_TMUX}:0.0" \
+    "export PATH=\"$(myblog_node_path):\$PATH\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" && cd \"${REPO_ROOT}/apps/web\" && pnpm run dev" C-m
+
+  tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$MYBLOG_ADMIN_TMUX" -c "${REPO_ROOT}/apps/admin" -- "${SHELL:-bash}" -l
+  tmux -f /exec-daemon/tmux.portal.conf send-keys -t "${MYBLOG_ADMIN_TMUX}:0.0" \
+    "export PATH=\"$(myblog_node_path):\$PATH\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" && cd \"${REPO_ROOT}/apps/admin\" && pnpm exec cf dev --port ${MYBLOG_ADMIN_PORT}" C-m
+
+  myblog_wait_http "${MYBLOG_WEB_URL}/" 200 45
+  myblog_wait_http "${MYBLOG_ADMIN_URL}/" 200 45
+
+  myblog_save_state
+  echo "Launch ready. Web ${MYBLOG_WEB_URL} admin ${MYBLOG_ADMIN_URL}"
+}
+
+cmd_doctor() {
+  myblog_export_node
+  myblog_load_state
+  local artifacts
+  artifacts="$(myblog_artifacts_dir)"
+  local ok=0
+
+  if ! tmux -f /exec-daemon/tmux.portal.conf has-session -t "=${MYBLOG_WEB_TMUX}" 2>/dev/null; then
+    echo "FAIL web tmux session missing (${MYBLOG_WEB_TMUX})"
+    ok=1
+  else
+    echo "OK web tmux ${MYBLOG_WEB_TMUX}"
+  fi
+  if ! tmux -f /exec-daemon/tmux.portal.conf has-session -t "=${MYBLOG_ADMIN_TMUX}" 2>/dev/null; then
+    echo "FAIL admin tmux session missing (${MYBLOG_ADMIN_TMUX})"
+    ok=1
+  else
+    echo "OK admin tmux ${MYBLOG_ADMIN_TMUX}"
+  fi
+
+  local code
+  code="$(curl -s -o /dev/null -w '%{http_code}' "${MYBLOG_WEB_URL}/" || echo 000)"
+  if [[ "$code" == "200" ]]; then echo "OK web HTTP ${code}"; else echo "FAIL web HTTP ${code}"; ok=1; fi
+  code="$(curl -s -o /dev/null -w '%{http_code}' "${MYBLOG_ADMIN_URL}/" || echo 000)"
+  if [[ "$code" == "200" ]]; then echo "OK admin HTTP ${code}"; else echo "FAIL admin HTTP ${code}"; ok=1; fi
+
+  if [[ -d "${MYBLOG_PERSIST_STATE}/v3/d1" ]]; then
+    echo "OK persist dir ${MYBLOG_PERSIST_STATE}"
+  else
+    echo "FAIL persist dir missing"
+    ok=1
+  fi
+
+  if [[ -f "${artifacts}/summary.json" ]]; then
+    echo "NOTE evidence summary already present at ${artifacts}/summary.json"
+  fi
+
+  if [[ "$ok" -ne 0 ]]; then
+    exit 1
+  fi
+  echo "Doctor: instance looks drivable."
+}
+
+cmd_drive() {
+  local feature="${1:-submit-post}"
+  myblog_export_node
+  myblog_load_state
+  cmd_doctor
+  local artifacts
+  artifacts="$(myblog_artifacts_dir)"
+  mkdir -p "$artifacts"
+
+  case "$feature" in
+    submit-post)
+      local pw_home
+      pw_home="$(myblog_run_dir)/playwright-home"
+      mkdir -p "$pw_home"
+      if [[ ! -d "${pw_home}/node_modules/playwright" ]]; then
+        (cd "$pw_home" && npm init -y >/dev/null 2>&1 && npm install playwright@1.49.1 --no-fund --no-audit)
+        PLAYWRIGHT_BROWSERS_PATH="${pw_home}/browsers" npx --prefix "$pw_home" playwright install chromium
+      fi
+      export PLAYWRIGHT_BROWSERS_PATH="${pw_home}/browsers"
+      NODE_PATH="${pw_home}/node_modules" node "${SCRIPTS_DIR}/drive-submit-post.mjs" \
+        --web-url "$MYBLOG_WEB_URL" \
+        --admin-url "$MYBLOG_ADMIN_URL" \
+        --access-jwt "$(myblog_access_jwt)" \
+        --artifacts "$artifacts"
+      ;;
+    *)
+      echo "Unknown feature: $feature (see features/ in verify-myblog skill)." >&2
+      exit 1
+      ;;
+  esac
+  echo "Drive complete. Evidence in ${artifacts}"
+}
+
+cmd_cleanup() {
+  if [[ -f "$(myblog_state_file)" ]]; then
+    myblog_load_state || true
+  fi
+  if [[ -n "${MYBLOG_WEB_TMUX:-}" ]]; then
+    tmux -f /exec-daemon/tmux.portal.conf kill-session -t "=${MYBLOG_WEB_TMUX}" 2>/dev/null || true
+  fi
+  if [[ -n "${MYBLOG_ADMIN_TMUX:-}" ]]; then
+    tmux -f /exec-daemon/tmux.portal.conf kill-session -t "=${MYBLOG_ADMIN_TMUX}" 2>/dev/null || true
+  fi
+
+  local admin_dev_vars="${REPO_ROOT}/apps/admin/.dev.vars"
+  if [[ -n "${MYBLOG_ADMIN_DEV_VARS_BACKUP:-}" && -f "${MYBLOG_ADMIN_DEV_VARS_BACKUP}" ]]; then
+    mv -f "$MYBLOG_ADMIN_DEV_VARS_BACKUP" "$admin_dev_vars"
+  elif [[ -f "$admin_dev_vars" && "$(grep -c . "$admin_dev_vars" 2>/dev/null || echo 0)" -eq 1 ]]; then
+    rm -f "$admin_dev_vars"
+  fi
+
+  if [[ -n "${MYBLOG_PERSIST_STATE:-}" && -d "${MYBLOG_PERSIST_STATE}" ]]; then
+    rm -rf "${MYBLOG_PERSIST_STATE}"
+  fi
+
+  local artifacts
+  artifacts="$(myblog_artifacts_dir 2>/dev/null || true)"
+  if [[ -n "$artifacts" && -d "$artifacts" ]]; then
+    echo "Evidence preserved at ${artifacts}"
+  fi
+  echo "Cleanup done."
+}
+
+main() {
+  local cmd="${1:-}"
+  shift || true
+  case "$cmd" in
+    launch) cmd_launch "$@" ;;
+    doctor) cmd_doctor "$@" ;;
+    drive) cmd_drive "$@" ;;
+    cleanup) cmd_cleanup "$@" ;;
+    -h|--help|help|"") usage ;;
+    *) echo "Unknown command: $cmd" >&2; usage >&2; exit 1 ;;
+  esac
+}
+
+main "$@"
