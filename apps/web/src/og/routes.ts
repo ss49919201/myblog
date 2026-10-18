@@ -5,10 +5,15 @@ import { ogCacheUrl } from './cache-url'
 import { withOgCache } from './cache'
 import { renderPostOgPng, renderSiteOgPng } from './render'
 
+function ogAssetBaseUrl(c: { req: { url: string } }): string {
+  return new URL(c.req.url).origin
+}
+
 export function registerOgRoutes(app: Hono<{ Bindings: Env }>): void {
   app.get('/og/site.png', async (c) => {
     const cacheUrl = ogCacheUrl(c, '/og/site.png')
-    return withOgCache(c, cacheUrl, () => renderSiteOgPng())
+    const assetBaseUrl = ogAssetBaseUrl(c)
+    return withOgCache(c, cacheUrl, () => renderSiteOgPng(assetBaseUrl))
   })
 
   app.get('/og/posts/:slug', async (c) => {
@@ -21,7 +26,10 @@ export function registerOgRoutes(app: Hono<{ Bindings: Env }>): void {
     return result.match(
       async (post) => {
         const cacheUrl = ogCacheUrl(c, `/og/posts/${post.slug}.png`)
-        return withOgCache(c, cacheUrl, () => renderPostOgPng(post.title))
+        const assetBaseUrl = ogAssetBaseUrl(c)
+        return withOgCache(c, cacheUrl, () =>
+          renderPostOgPng(post.title, assetBaseUrl),
+        )
       },
       (error) => {
         if (error.type === 'NotFound') {

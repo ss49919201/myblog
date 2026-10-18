@@ -11,11 +11,14 @@ type OgFont = {
 
 let cachedFonts: OgFont[] | undefined
 
-export async function getOgFonts(): Promise<readonly OgFont[]> {
+export async function getOgFonts(
+  assetBaseUrl: string,
+): Promise<readonly OgFont[]> {
   if (cachedFonts) {
     return cachedFonts
   }
-  const response = await fetch(notoSansJpBoldUrl)
+  const fontUrl = new URL(notoSansJpBoldUrl, assetBaseUrl).href
+  const response = await fetch(fontUrl)
   if (!response.ok) {
     throw new Error(`failed to load OG font (${response.status})`)
   }
