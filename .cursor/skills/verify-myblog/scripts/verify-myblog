@@ -19,6 +19,8 @@ Environment:
   MYBLOG_VERIFY_RUN_ID   Reuse or name a run directory under artifacts/verify-myblog/.
   MYBLOG_WEB_PORT        Public web dev port (default 5173).
   MYBLOG_ADMIN_PORT      Admin dev port (default 5174).
+  DATABASE_ID            D1 database id for local apply and web dev (optional).
+  MYBLOG_LOCAL_DATABASE_ID  Default when DATABASE_ID is unset and configs use env ids.
 EOF
 }
 
@@ -38,12 +40,11 @@ cmd_launch() {
   echo "Evidence: ${artifacts}"
 
   cd "${REPO_ROOT}/apps/web"
-  DATABASE_ID="$(sed -n 's/^[[:space:]]*id: "\([^"]*\)".*/\1/p' cloudflare.config.ts | head -1)"
-  export DATABASE_ID
-  if [[ -z "$DATABASE_ID" ]]; then
-    echo "Could not read the D1 id from apps/web/cloudflare.config.ts" >&2
+  if ! DATABASE_ID="$(myblog_database_id)"; then
+    echo "Set DATABASE_ID or MYBLOG_LOCAL_DATABASE_ID for local D1 (web config uses process.env.DATABASE_ID)." >&2
     exit 1
   fi
+  export DATABASE_ID
   node scripts/db.mjs local apply
   node scripts/db.mjs local seed
 
@@ -64,7 +65,7 @@ cmd_launch() {
 
   tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$MYBLOG_WEB_TMUX" -c "${REPO_ROOT}/apps/web" -- "${SHELL:-bash}" -l
   tmux -f /exec-daemon/tmux.portal.conf send-keys -t "${MYBLOG_WEB_TMUX}:0.0" \
-    "export PATH=\"$(myblog_node_path):\$PATH\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" && cd \"${REPO_ROOT}/apps/web\" && pnpm run dev" C-m
+    "export PATH=\"$(myblog_node_path):\$PATH\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" DATABASE_ID=\"${DATABASE_ID}\" && cd \"${REPO_ROOT}/apps/web\" && pnpm run dev" C-m
 
   tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$MYBLOG_ADMIN_TMUX" -c "${REPO_ROOT}/apps/admin" -- "${SHELL:-bash}" -l
   tmux -f /exec-daemon/tmux.portal.conf send-keys -t "${MYBLOG_ADMIN_TMUX}:0.0" \
