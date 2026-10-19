@@ -38,8 +38,14 @@ cmd_launch() {
   echo "Evidence: ${artifacts}"
 
   cd "${REPO_ROOT}/apps/web"
-  npx wrangler d1 execute myblog-web --local --persist-to "$MYBLOG_PERSIST_STATE" --file schema.sql
-  npx wrangler d1 execute myblog-web --local --persist-to "$MYBLOG_PERSIST_STATE" --file seed.sql
+  DATABASE_ID="$(sed -n 's/^[[:space:]]*id: "\([^"]*\)".*/\1/p' cloudflare.config.ts | head -1)"
+  export DATABASE_ID
+  if [[ -z "$DATABASE_ID" ]]; then
+    echo "Could not read the D1 id from apps/web/cloudflare.config.ts" >&2
+    exit 1
+  fi
+  node scripts/db.mjs local apply
+  node scripts/db.mjs local seed
 
   local admin_dev_vars="${REPO_ROOT}/apps/admin/.dev.vars"
   if [[ -f "$admin_dev_vars" ]]; then

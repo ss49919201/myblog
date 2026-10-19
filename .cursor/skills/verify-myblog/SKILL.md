@@ -18,7 +18,7 @@ From the repo root, with Node 22.18+ available (nvm + `.nvmrc` recommended):
 This command:
 
 1. Creates `artifacts/verify-myblog/<MYBLOG_VERIFY_RUN_ID>/` with an isolated D1 persist directory.
-2. Applies `apps/web/schema.sql` and `apps/web/seed.sql` into that persist path via `wrangler d1 execute --local --persist-to`.
+2. Applies `apps/web/migrations` and `apps/web/seed.sql` into that persist path via `node scripts/db.mjs local apply` and `local seed` (`DATABASE_ID` from `cloudflare.config.ts`, `MYBLOG_PERSIST_STATE` set).
 3. Writes `apps/admin/.dev.vars` with `PUBLIC_WEB_URL` pointing at the local web origin (restored on cleanup).
 4. Starts `pnpm run dev` for `@myblog/web` and `cf dev --port 5174` for `@myblog/admin` in dedicated tmux sessions, both with `MYBLOG_PERSIST_STATE` set so Vite shares the same D1 files.
 5. Waits until `GET /` returns `200` on web (`http://localhost:5173` by default) and admin (`http://localhost:5174`). Vite binds to `localhost` (IPv6); use `localhost`, not `127.0.0.1`, in this environment.

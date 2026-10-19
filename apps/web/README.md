@@ -1,6 +1,6 @@
 # @myblog/web
 
-Cloudflare Workers 上で動く Hono + JSX の SSR ブログ。記事は D1 に保存します。スキーマは [sqldef](https://github.com/sqldef/sqldef) の `sqlite3def` で管理します（D1 の migrations ディレクトリは使いません）。
+Cloudflare Workers 上で動く Hono + JSX の SSR ブログ。記事は D1 に保存します。スキーマの正本は [Drizzle](https://orm.drizzle.team/) の [`src/db/schema.ts`](src/db/schema.ts) です。`drizzle-kit generate` が [`migrations/`](migrations/) に SQL を出し、[`cf d1 migrations`](https://developers.cloudflare.com/d1/reference/migrations/) が適用します。
 
 Worker の設定は [`cloudflare.config.ts`](cloudflare.config.ts)（`cf` CLI）。ビルドは [`vite.config.ts`](vite.config.ts) の [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/)（`2.0.0-beta.sha-8c6014f9a`）です。OG 用 `.woff` は Vite の `?url` インポートと `fetch` で読み込みます。
 
@@ -8,15 +8,6 @@ Worker の設定は [`cloudflare.config.ts`](cloudflare.config.ts)（`cf` CLI）
 
 - Node.js **22.18 以上**（`cf` が `cloudflare.config.ts` を読むため。リポジトリルートの `.nvmrc` は 22.19）
 - pnpm 12.10.1（リポジトリルートの `packageManager`）
-- [`sqlite3def`](https://github.com/sqldef/sqldef/releases) **v3.11.26**（`apps/web/package.json` の `sqldefVersion` と揃える）
-
-Linux / macOS の例（バイナリを PATH に置く）:
-
-```sh
-curl -sL "https://github.com/sqldef/sqldef/releases/download/v3.11.26/sqlite3def_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/').tar.gz" | tar xz
-sudo mv sqlite3def /usr/local/bin/
-sqlite3def --version
-```
 
 ## Cloudflare CLI（`cf`）
 
@@ -31,11 +22,16 @@ pnpm run deploy   # cf deploy
 
 初回は `cf auth login` が必要です。CI では `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を渡します。
 
-`cf` がまだないコマンドは `npx wrangler` で実行します（本リポジトリでは **D1 のスキーマ export**、`wrangler tail`、**単体シークレットの `secret put`**）。詳細は [Wrangler から cf への移行](https://developers.cloudflare.com/cf/wrangler/) と [コマンド対応表](https://developers.cloudflare.com/cf/wrangler/reference/)。
+`cf` がまだないコマンドは `npx wrangler` で実行します（本リポジトリでは **`wrangler tail`** と **単体シークレットの `secret put`**）。詳細は [Wrangler から cf への移行](https://developers.cloudflare.com/cf/wrangler/) と [コマンド対応表](https://developers.cloudflare.com/cf/wrangler/reference/)。
 
 ## Cloudflare D1 の作成（本番）
 
-1. `cloudflare.config.ts` の D1 `id` が `REPLACE_WITH_PRODUCTION_DATABASE_ID` のままなら、本番用 ID に差し替えます（`package.json` の `db:*` スクリプト内の同じ文字列も揃えます）。`wrangler.jsonc` の `database_id` も export 用に同期します。
+1. `cloudflare.config.ts` の D1 `id` が `REPLACE_WITH_PRODUCTION_DATABASE_ID` のままなら、本番用 ID に差し替えます。`db:*` は [`scripts/db.mjs`](scripts/db.mjs) を呼ぶだけで、同じ ID を環境変数 `DATABASE_ID` から読みます（`db:generate` と `db:schema:check` を除く）。
+
+```sh
+export DATABASE_ID='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+```
+
 2. リモート DB を作成します。
 
 ```sh
@@ -56,27 +52,21 @@ pnpm install
 
 ### ローカル D1（開発）
 
-1. ローカル DB ファイルを用意する（初回のみ）。
+1. 未適用のマイグレーションを確認してから適用します。
 
 ```sh
 cd apps/web
-pnpm run db:local:touch
-```
-
-2. 差分を確認してから `schema.sql` を適用します（ローカル D1 は export → sqldef → `cf d1 raw --local`）。
-
-```sh
 pnpm run db:local:plan
 pnpm run db:local:apply
 ```
 
-3. 開発用の記事データを入れます（`seed.sql`。本番には流しません）。
+2. 開発用の記事データを入れます（`seed.sql`。本番には流しません）。
 
 ```sh
 pnpm run db:local:seed
 ```
 
-4. 開発サーバー。
+3. 開発サーバー。
 
 ```sh
 pnpm --filter @myblog/web dev
@@ -86,11 +76,11 @@ pnpm --filter @myblog/web dev
 
 ### スキーマ変更（ローカル）
 
-`schema.sql` を編集したあと、`pnpm run db:local:plan` で差分 DDL を確認し、`pnpm run db:local:apply` で適用します。ローカル D1 は内部メタデータテーブルを含むため、sqldef は SQLite ファイルを直接開かず、`npx wrangler d1 export --local` で export した SQL を `current` として差分計算します。`db:local:apply` は sqldef が出力する `BEGIN` / `COMMIT` を除いてから `cf d1 raw --local` に渡します。
+`src/db/schema.ts` を編集したあと、`pnpm run db:generate` で `migrations/` に SQL を追加します。`pnpm run db:local:plan` は未適用ファイルを一覧し、`pnpm run db:local:apply` が `cf d1 migrations apply --local` で適用します。適用済みは `d1_migrations` に記録されます。
 
 ### スキーマ変更（リモート）
 
-1. 差分 DDL を確認します。
+1. 未適用のマイグレーションを確認します。
 
 ```sh
 cd apps/web
@@ -103,7 +93,7 @@ pnpm run db:remote:plan
 pnpm run db:remote:apply
 ```
 
-`db:remote:plan` は `npx wrangler d1 export --remote --no-data` で現在のスキーマを取り、`sqlite3def` の `--dry-run` でマイグレーション SQL を標準出力に出します。`db:remote:apply` はトランザクション行を除いた DDL を `/tmp/myblog-web-migrate.sql` に書き、`cf d1 query`（リモート既定）で実行します。
+`db:remote:plan` は未適用のマイグレーションを一覧します。`db:remote:apply` は `cf d1 migrations apply`（リモート既定）で実行します。初回の `0000_init.sql` は `CREATE TABLE IF NOT EXISTS` なので、すでに `posts` があるデータベースでも適用できます。
 
 ## チェック
 

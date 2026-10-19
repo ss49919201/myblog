@@ -5,7 +5,7 @@
 ## 前提
 
 - `apps/web` と同じ D1 データベース（`myblog-web`）をバインドします。
-- スキーマは `apps/web/schema.sql` のみを正本とし、sqldef で本番・ローカルに適用します。
+- スキーマの正本は `apps/web/src/db/schema.ts` です。Drizzle Kit が生成したマイグレーションを `cf d1 migrations` で本番・ローカルに適用します。
 
 ## Cloudflare Access の設定
 

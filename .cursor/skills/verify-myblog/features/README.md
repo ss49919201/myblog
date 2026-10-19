@@ -5,7 +5,6 @@ This directory is the maintained source for verifying user-facing behavior of th
 ## Baseline preconditions
 
 - Node.js **22.18+** (see repo `.nvmrc`; `verify-myblog` uses nvm when available).
-- `sqlite3def` on `PATH` (see `apps/web/README.md`).
 - `pnpm install` at the repo root.
 - Run `.cursor/skills/verify-myblog/scripts/verify-myblog launch` so both Workers share one isolated local D1 persist directory (`MYBLOG_PERSIST_STATE`).
 - Default URLs: web `http://localhost:5173`, admin `http://localhost:5174` (use `localhost`, not `127.0.0.1`, when Vite listens on `::1` only).
