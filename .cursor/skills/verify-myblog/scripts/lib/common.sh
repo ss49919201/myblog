@@ -103,3 +103,34 @@ myblog_wait_http() {
 myblog_access_jwt() {
   cat "${SKILL_DIR}/fixtures/local-access-jwt.txt"
 }
+
+myblog_read_literal_d1_id() {
+  local config_path="$1"
+  if [[ ! -f "$config_path" ]]; then
+    return 0
+  fi
+  sed -n 's/^[[:space:]]*id: "\([^"]*\)".*/\1/p' "$config_path" | head -1
+}
+
+myblog_database_id() {
+  if [[ -n "${DATABASE_ID:-}" ]]; then
+    echo "$DATABASE_ID"
+    return 0
+  fi
+  if [[ -n "${MYBLOG_LOCAL_DATABASE_ID:-}" ]]; then
+    echo "$MYBLOG_LOCAL_DATABASE_ID"
+    return 0
+  fi
+  local id
+  id="$(myblog_read_literal_d1_id "${REPO_ROOT}/apps/web/cloudflare.config.ts")"
+  if [[ -n "$id" ]]; then
+    echo "$id"
+    return 0
+  fi
+  id="$(myblog_read_literal_d1_id "${REPO_ROOT}/apps/admin/cloudflare.config.ts")"
+  if [[ -n "$id" ]]; then
+    echo "$id"
+    return 0
+  fi
+  return 1
+}
