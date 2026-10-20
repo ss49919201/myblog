@@ -55,7 +55,7 @@ async function main() {
   if (titleIdx < 0) {
     throw new Error('new post title not found on web home')
   }
-  const slice = listHtml.slice(Math.max(0, titleIdx - 200), titleIdx + 50)
+  const slice = listHtml.slice(Math.max(0, titleIdx - 1500), titleIdx + 200)
   const slugMatch = slice.match(/href="\/posts\/([^"]+)"/)
   if (!slugMatch) {
     throw new Error('slug link not found near new post title')

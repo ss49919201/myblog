@@ -17,15 +17,22 @@
     "db:schema:check": "node scripts/db.mjs check"
   },
   "dependencies": {
+    "@cloudflare/kumo": "2.15.0",
     "@fontsource/noto-sans-jp": "5.3.0",
+    "@phosphor-icons/react": "2.1.10",
     "drizzle-orm": "0.45.4",
     "hono": "4.13.13",
     "neverthrow": "8.2.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "workers-og": "0.0.27"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "2.0.0-beta.sha-8c6014f9a",
     "@cloudflare/workers-types": "5.20261009.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.0.4",
     "cf": "1.0.0-beta.16",
     "drizzle-kit": "0.31.11",
     "typescript": "6.0.3",

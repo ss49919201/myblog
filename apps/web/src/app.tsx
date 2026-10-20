@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { jsxRenderer } from 'hono/jsx-renderer'
 import type { Env } from './env'
+import { renderPage } from './ssr/render-page'
 import {
   absoluteUrl,
   excerptFromBody,
@@ -16,8 +16,6 @@ import { PostPage } from './views/PostPage'
 
 const app = new Hono<{ Bindings: Env }>()
 
-app.use('*', jsxRenderer())
-
 registerOgRoutes(app)
 
 app.get('/', async (c) => {
@@ -32,7 +30,7 @@ app.get('/', async (c) => {
         image: siteOgImageUrl(c),
         imageAlt: SITE_NAME,
       }
-      return c.render(<HomePage posts={posts} meta={meta} />)
+      return c.html(renderPage(<HomePage posts={posts} meta={meta} />))
     },
     (error) => renderPostsError(c, error),
   )
@@ -51,7 +49,7 @@ app.get('/posts/:slug', async (c) => {
         image: postOgImageUrl(c, post.slug),
         imageAlt: post.title,
       }
-      return c.render(<PostPage post={post} meta={meta} />)
+      return c.html(renderPage(<PostPage post={post} meta={meta} />))
     },
     (error) => renderPostsError(c, error),
   )

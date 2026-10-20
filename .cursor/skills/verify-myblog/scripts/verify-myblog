@@ -39,11 +39,10 @@ cmd_launch() {
 
   cd "${REPO_ROOT}/apps/web"
   DATABASE_ID="$(sed -n 's/^[[:space:]]*id: "\([^"]*\)".*/\1/p' cloudflare.config.ts | head -1)"
-  export DATABASE_ID
   if [[ -z "$DATABASE_ID" ]]; then
-    echo "Could not read the D1 id from apps/web/cloudflare.config.ts" >&2
-    exit 1
+    DATABASE_ID="${MYBLOG_DATABASE_ID:-00000000-0000-4000-8000-000000000001}"
   fi
+  export DATABASE_ID
   node scripts/db.mjs local apply
   node scripts/db.mjs local seed
 
@@ -64,11 +63,11 @@ cmd_launch() {
 
   tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$MYBLOG_WEB_TMUX" -c "${REPO_ROOT}/apps/web" -- "${SHELL:-bash}" -l
   tmux -f /exec-daemon/tmux.portal.conf send-keys -t "${MYBLOG_WEB_TMUX}:0.0" \
-    "export PATH=\"$(myblog_node_path):\$PATH\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" && cd \"${REPO_ROOT}/apps/web\" && pnpm run dev" C-m
+    "export PATH=\"$(myblog_node_path):\$PATH\" DATABASE_ID=\"${DATABASE_ID}\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" && cd \"${REPO_ROOT}/apps/web\" && pnpm run dev" C-m
 
   tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$MYBLOG_ADMIN_TMUX" -c "${REPO_ROOT}/apps/admin" -- "${SHELL:-bash}" -l
   tmux -f /exec-daemon/tmux.portal.conf send-keys -t "${MYBLOG_ADMIN_TMUX}:0.0" \
-    "export PATH=\"$(myblog_node_path):\$PATH\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" && cd \"${REPO_ROOT}/apps/admin\" && pnpm exec cf dev --port ${MYBLOG_ADMIN_PORT}" C-m
+    "export PATH=\"$(myblog_node_path):\$PATH\" DATABASE_ID=\"${DATABASE_ID}\" MYBLOG_PERSIST_STATE=\"${MYBLOG_PERSIST_STATE}\" && cd \"${REPO_ROOT}/apps/admin\" && pnpm exec cf dev --port ${MYBLOG_ADMIN_PORT}" C-m
 
   myblog_wait_http "${MYBLOG_WEB_URL}/" 200 45
   myblog_wait_http "${MYBLOG_ADMIN_URL}/" 200 45

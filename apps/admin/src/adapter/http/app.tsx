@@ -2,7 +2,7 @@ import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { csrf } from "hono/csrf";
-import { jsxRenderer } from "hono/jsx-renderer";
+import { renderPage } from "../../ssr/render-page";
 import * as v from "valibot";
 import { submitPost } from "../../application/submit-post";
 import { submitPostInputSchema } from "../../domain/validate-submit-input";
@@ -13,15 +13,13 @@ import { createD1PostRepository } from "../persistence/d1-post-repository";
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.use("*", jsxRenderer());
-
 function publicPostUrl(env: Env, slug: string): string {
   const base = env.PUBLIC_WEB_URL.replace(/\/$/, "");
   return `${base}/posts/${slug}`;
 }
 
 function renderForm(
-  c: { render: Context["render"] },
+  c: Pick<Context, "html">,
   props: {
     title?: string;
     bodyMd?: string;
@@ -37,7 +35,7 @@ function renderForm(
       publishedUrl={props.publishedUrl}
     />
   );
-  return c.render(page);
+  return c.html(renderPage(page));
 }
 
 app.get("/", (c) => renderForm(c, {}));
