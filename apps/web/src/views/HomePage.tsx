@@ -11,7 +11,6 @@ type HomePageProps = {
 
 export const HomePage: FC<HomePageProps> = ({ posts, meta }) => (
   <Layout title={meta.title} meta={meta}>
-    <h1 class="page-heading">記事一覧</h1>
     <ul class="post-list">
       {posts.map((post) => (
         <li key={post.slug} class="post-card">

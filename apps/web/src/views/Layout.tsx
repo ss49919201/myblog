@@ -51,12 +51,10 @@ const styles = `
     background: color-mix(in srgb, var(--accent) 12%, var(--bg));
     border: 2px solid var(--accent);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease;
   }
   .post-card:hover {
     transform: translateY(-3px);
-    box-shadow: var(--shadow-card-hover);
   }
   .post-card-title {
     font-family: 'M PLUS Rounded 1c', 'M PLUS 1p', system-ui, sans-serif;
@@ -83,7 +81,6 @@ const styles = `
     background: color-mix(in srgb, var(--accent) 12%, var(--bg));
     border: 2px solid var(--accent);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
   }
   .article-title {
     font-family: 'M PLUS Rounded 1c', 'M PLUS 1p', system-ui, sans-serif;

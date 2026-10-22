@@ -25,7 +25,7 @@ app.get('/', async (c) => {
   return result.match(
     (posts) => {
       const meta = {
-        title: `記事一覧 | ${SITE_NAME}`,
+        title: SITE_NAME,
         description: `${SITE_NAME} の記事一覧です。`,
         type: 'website' as const,
         url: absoluteUrl(c, '/'),

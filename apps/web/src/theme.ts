@@ -41,7 +41,5 @@ export function rootCssVariables(): string {
     --radius-pill: ${layout.radiusPill};
     --shadow-card: 0 4px 0 color-mix(in srgb, var(--accent) 55%, transparent),
       0 10px 24px color-mix(in srgb, var(--text) 8%, transparent);
-    --shadow-card-hover: 0 6px 0 color-mix(in srgb, var(--accent) 70%, transparent),
-      0 16px 32px color-mix(in srgb, var(--text) 12%, transparent);
   }`
 }
