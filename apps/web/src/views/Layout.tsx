@@ -30,13 +30,6 @@ const styles = `
   }
   .site-title a { text-decoration: none; }
   .site-title a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
-  footer {
-    margin-top: 3.5rem;
-    padding-top: 1.25rem;
-    border-top: 3px solid var(--accent);
-    font-size: 0.875rem;
-    color: var(--muted);
-  }
   .page-heading {
     font-family: 'M PLUS Rounded 1c', 'M PLUS 1p', system-ui, sans-serif;
     font-size: clamp(1.5rem, 4vw, 1.85rem);
@@ -175,7 +168,6 @@ export const Layout: FC<LayoutProps> = ({ title, meta, children }) => (
           </p>
         </header>
         <main>{children}</main>
-        <footer>SSR with Hono JSX on Cloudflare Workers</footer>
       </div>
     </body>
   </html>
