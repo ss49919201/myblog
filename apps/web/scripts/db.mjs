@@ -22,7 +22,7 @@ commands:
   check
 
 DATABASE_ID is required for local and remote commands.
-MYBLOG_PERSIST_STATE selects the local D1 directory when set.`
+BLOG_PERSIST_STATE selects the local D1 directory when set.`
 
 main()
 
@@ -72,8 +72,8 @@ function d1Raw(sql, local) {
 
 function localFlags() {
   const flags = ['--local']
-  if (process.env.MYBLOG_PERSIST_STATE) {
-    flags.push('--persist-to', process.env.MYBLOG_PERSIST_STATE)
+  if (process.env.BLOG_PERSIST_STATE) {
+    flags.push('--persist-to', process.env.BLOG_PERSIST_STATE)
   }
   return flags
 }

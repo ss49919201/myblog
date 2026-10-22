@@ -1,10 +1,10 @@
-# myblog-admin
+# blog-admin
 
 記事を D1 の `posts` テーブルへ入稿する Cloudflare Worker です。公開サイト（`apps/web`）とは別アプリに分け、**Cloudflare Access** で本人のみがフォームを開ける前提です（Access が前段で認証し、Worker はその内側で動きます）。
 
 ## 前提
 
-- `apps/web` と同じ D1 データベース（`myblog-web`）をバインドします。
+- `apps/web` と同じ D1 データベース（`blog-web`）をバインドします。
 - スキーマの正本は `apps/web/src/db/schema.ts` です。Drizzle Kit が生成したマイグレーションを `cf d1 migrations` で本番・ローカルに適用します。
 
 ## Cloudflare Access の設定
@@ -22,7 +22,7 @@
 
 [`cloudflare.config.ts`](cloudflare.config.ts) の `PUBLIC_WEB_URL` と D1 `id` を本番値に差し替えてから `pnpm run deploy`（`cf deploy`）します。
 
-単体シークレットは `cf` 未対応のため `npx wrangler secret put <NAME> --name myblog-admin` を使います（[参考](https://developers.cloudflare.com/cf/wrangler/reference/)）。
+単体シークレットは `cf` 未対応のため `npx wrangler secret put <NAME> --name blog-admin` を使います（[参考](https://developers.cloudflare.com/cf/wrangler/reference/)）。
 
 ## CSRF
 
@@ -44,16 +44,16 @@ pnpm run db:remote:apply
 
 ```bash
 pnpm install
-pnpm --filter @myblog/admin dev
+pnpm --filter @blog/admin dev
 ```
 
-ビルドとデプロイは `pnpm --filter @myblog/admin run build` / `run deploy`（`cf build` / `cf deploy`）。Vite 設定は [apps/web](../web) と同様 `@cloudflare/vite-plugin` です。
+ビルドとデプロイは `pnpm --filter @blog/admin run build` / `run deploy`（`cf build` / `cf deploy`）。Vite 設定は [apps/web](../web) と同様 `@cloudflare/vite-plugin` です。
 
 ## テスト
 
 ```bash
-pnpm --filter @myblog/admin test
-pnpm --filter @myblog/admin typecheck
+pnpm --filter @blog/admin test
+pnpm --filter @blog/admin typecheck
 ```
 
 ## Markdown の扱い

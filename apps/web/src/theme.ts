@@ -1,4 +1,4 @@
-export const SITE_NAME = 'myblog'
+export const SITE_NAME = 'blog'
 
 export const palette = {
   text: '#1f2937',

@@ -5,12 +5,12 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../.." && pwd)"
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SCRIPTS_DIR="${SKILL_DIR}/scripts"
 
-export MYBLOG_WEB_PORT="${MYBLOG_WEB_PORT:-5173}"
-export MYBLOG_ADMIN_PORT="${MYBLOG_ADMIN_PORT:-5174}"
-export MYBLOG_WEB_URL="http://localhost:${MYBLOG_WEB_PORT}"
-export MYBLOG_ADMIN_URL="http://localhost:${MYBLOG_ADMIN_PORT}"
+export BLOG_WEB_PORT="${BLOG_WEB_PORT:-5173}"
+export BLOG_ADMIN_PORT="${BLOG_ADMIN_PORT:-5174}"
+export BLOG_WEB_URL="http://localhost:${BLOG_WEB_PORT}"
+export BLOG_ADMIN_URL="http://localhost:${BLOG_ADMIN_PORT}"
 
-myblog_node_path() {
+blog_node_path() {
   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     # shellcheck disable=SC1090
@@ -25,9 +25,9 @@ myblog_node_path() {
   fi
 }
 
-myblog_export_node() {
+blog_export_node() {
   local node_bin
-  node_bin="$(myblog_node_path)"
+  node_bin="$(blog_node_path)"
   export PATH="${node_bin}:${PATH}"
   local min="22.18.0"
   local cur
@@ -38,29 +38,29 @@ myblog_export_node() {
   fi
 }
 
-myblog_run_dir() {
-  if [[ -z "${MYBLOG_VERIFY_RUN_ID:-}" ]]; then
-    MYBLOG_VERIFY_RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$(printf '%04x' "$$")"
-    export MYBLOG_VERIFY_RUN_ID
+blog_run_dir() {
+  if [[ -z "${BLOG_VERIFY_RUN_ID:-}" ]]; then
+    BLOG_VERIFY_RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$(printf '%04x' "$$")"
+    export BLOG_VERIFY_RUN_ID
   fi
-  echo "${REPO_ROOT}/artifacts/verify-myblog/${MYBLOG_VERIFY_RUN_ID}"
+  echo "${REPO_ROOT}/artifacts/verify-blog/${BLOG_VERIFY_RUN_ID}"
 }
 
-myblog_state_file() {
-  echo "$(myblog_run_dir)/state.env"
+blog_state_file() {
+  echo "$(blog_run_dir)/state.env"
 }
 
-myblog_artifacts_dir() {
-  echo "$(myblog_run_dir)/evidence"
+blog_artifacts_dir() {
+  echo "$(blog_run_dir)/evidence"
 }
 
-myblog_persist_dir() {
-  echo "$(myblog_run_dir)/persist"
+blog_persist_dir() {
+  echo "$(blog_run_dir)/persist"
 }
 
-myblog_load_state() {
+blog_load_state() {
   local f
-  f="$(myblog_state_file)"
+  f="$(blog_state_file)"
   if [[ ! -f "$f" ]]; then
     echo "No verification state at $f (run launch first)." >&2
     return 1
@@ -69,22 +69,22 @@ myblog_load_state() {
   source "$f"
 }
 
-myblog_save_state() {
+blog_save_state() {
   local f
-  f="$(myblog_state_file)"
+  f="$(blog_state_file)"
   mkdir -p "$(dirname "$f")"
   cat >"$f" <<EOF
-MYBLOG_VERIFY_RUN_ID=${MYBLOG_VERIFY_RUN_ID}
-MYBLOG_PERSIST_STATE=${MYBLOG_PERSIST_STATE}
-MYBLOG_WEB_PORT=${MYBLOG_WEB_PORT}
-MYBLOG_ADMIN_PORT=${MYBLOG_ADMIN_PORT}
-MYBLOG_WEB_TMUX=${MYBLOG_WEB_TMUX}
-MYBLOG_ADMIN_TMUX=${MYBLOG_ADMIN_TMUX}
-MYBLOG_ADMIN_DEV_VARS_BACKUP=${MYBLOG_ADMIN_DEV_VARS_BACKUP:-}
+BLOG_VERIFY_RUN_ID=${BLOG_VERIFY_RUN_ID}
+BLOG_PERSIST_STATE=${BLOG_PERSIST_STATE}
+BLOG_WEB_PORT=${BLOG_WEB_PORT}
+BLOG_ADMIN_PORT=${BLOG_ADMIN_PORT}
+BLOG_WEB_TMUX=${BLOG_WEB_TMUX}
+BLOG_ADMIN_TMUX=${BLOG_ADMIN_TMUX}
+BLOG_ADMIN_DEV_VARS_BACKUP=${BLOG_ADMIN_DEV_VARS_BACKUP:-}
 EOF
 }
 
-myblog_wait_http() {
+blog_wait_http() {
   local url="$1"
   local want="${2:-200}"
   local tries="${3:-30}"
@@ -100,6 +100,6 @@ myblog_wait_http() {
   return 1
 }
 
-myblog_access_jwt() {
+blog_access_jwt() {
   cat "${SKILL_DIR}/fixtures/local-access-jwt.txt"
 }

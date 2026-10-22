@@ -1,4 +1,4 @@
-export const SITE_NAME = 'myblog 入稿'
+export const SITE_NAME = 'blog 入稿'
 
 export const palette = {
   text: '#1f2937',

@@ -12,4 +12,4 @@ dist/
 .wrangler/
 .cloudflare/
 *.tsbuildinfo
-artifacts/verify-myblog/
+artifacts/verify-blog/

@@ -161,7 +161,7 @@ export const Layout: FC<LayoutProps> = ({ title, meta, children }) => (
       <div class="wrap">
         <header>
           <p class="site-title">
-            <a href="/">myblog</a>
+            <a href="/">blog</a>
           </p>
         </header>
         <main>{children}</main>

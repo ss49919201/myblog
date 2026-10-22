@@ -1,4 +1,4 @@
-# @myblog/web
+# @blog/web
 
 Cloudflare Workers 上で動く Hono + JSX の SSR ブログ。記事は D1 に保存します。スキーマの正本は [Drizzle](https://orm.drizzle.team/) の [`src/db/schema.ts`](src/db/schema.ts) です。`drizzle-kit generate` が [`migrations/`](migrations/) に SQL を出し、[`cf d1 migrations`](https://developers.cloudflare.com/d1/reference/migrations/) が適用します。
 
@@ -36,7 +36,7 @@ export DATABASE_ID='xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 
 ```sh
 cd apps/web
-pnpm exec cf d1 create --name myblog-web
+pnpm exec cf d1 create --name blog-web
 ```
 
 表示された ID を `cloudflare.config.ts` の `bindings.d1({ id: ... })` に書き込みます。
@@ -69,7 +69,7 @@ pnpm run db:local:seed
 3. 開発サーバー。
 
 ```sh
-pnpm --filter @myblog/web dev
+pnpm --filter @blog/web dev
 ```
 
 ブラウザで `http://localhost:8787/` を開きます。
@@ -98,8 +98,8 @@ pnpm run db:remote:apply
 ## チェック
 
 ```sh
-pnpm --filter @myblog/web typecheck
-pnpm --filter @myblog/web run db:schema:check
+pnpm --filter @blog/web typecheck
+pnpm --filter @blog/web run db:schema:check
 ```
 
 ## ルート

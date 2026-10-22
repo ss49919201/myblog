@@ -11,14 +11,14 @@ A visitor opens a single post at `/posts/:slug` with title, body HTML, and metad
 
 - Click a post title on the home page, or navigate directly to `/posts/<slug>`.
 
-## Driving it with verify-myblog
+## Driving it with verify-blog
 
 Preconditions:
 
-- `verify-myblog doctor` passes.
+- `verify-blog doctor` passes.
 - Local D1 includes seed data.
 
-- **Open seeded post.** `curl -sS -o artifacts/post-detail.html -w '%{http_code}\n' "$MYBLOG_WEB_URL/posts/hello-hono"` prints `200` and HTML whose `<title>` contains `Hono JSX で SSR を始める`.
+- **Open seeded post.** `curl -sS -o artifacts/post-detail.html -w '%{http_code}\n' "$BLOG_WEB_URL/posts/hello-hono"` prints `200` and HTML whose `<title>` contains `Hono JSX で SSR を始める`.
 
 ## Gotchas
 

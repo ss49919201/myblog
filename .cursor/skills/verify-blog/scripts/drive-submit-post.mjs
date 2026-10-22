@@ -26,7 +26,7 @@ async function main() {
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   const title = `Verify agent ${stamp}`
-  const bodyMd = 'Submitted through verify-myblog submit-post drive.'
+  const bodyMd = 'Submitted through verify-blog submit-post drive.'
 
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage({

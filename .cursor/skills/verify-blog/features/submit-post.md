@@ -13,14 +13,14 @@ An authorized user opens the admin compose form, enters title and Markdown body,
 - Open the admin Worker URL (production sits behind Cloudflare Access; local `cf dev` has no Access gate).
 - Fill `タイトル` and `本文（Markdown）`, then choose `公開する`.
 
-## Driving it with verify-myblog
+## Driving it with verify-blog
 
 Preconditions:
 
-- `verify-myblog launch` started web and admin against the same `MYBLOG_PERSIST_STATE`.
-- `verify-myblog doctor` passes.
+- `verify-blog launch` started web and admin against the same `BLOG_PERSIST_STATE`.
+- `verify-blog doctor` passes.
 
-- **End-to-end publish.** `.cursor/skills/verify-myblog/scripts/verify-myblog drive submit-post` fills the form in Chromium with the local Access JWT header, saves evidence under `artifacts/verify-myblog/<run>/evidence/`, and writes `summary.json` with HTTP `200` for web post and OG PNG.
+- **End-to-end publish.** `.cursor/skills/verify-blog/scripts/verify-blog drive submit-post` fills the form in Chromium with the local Access JWT header, saves evidence under `artifacts/verify-blog/<run>/evidence/`, and writes `summary.json` with HTTP `200` for web post and OG PNG.
 
 ## Gotchas
 

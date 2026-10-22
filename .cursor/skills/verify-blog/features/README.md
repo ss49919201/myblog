@@ -1,22 +1,22 @@
-# myblog verification map
+# blog verification map
 
-This directory is the maintained source for verifying user-facing behavior of the myblog Workers (`apps/web` public SSR blog and `apps/admin` compose form). Read the index before driving the app, then open the matching feature file as the recipe.
+This directory is the maintained source for verifying user-facing behavior of the blog Workers (`apps/web` public SSR blog and `apps/admin` compose form). Read the index before driving the app, then open the matching feature file as the recipe.
 
 ## Baseline preconditions
 
-- Node.js **22.18+** (see repo `.nvmrc`; `verify-myblog` uses nvm when available).
+- Node.js **22.18+** (see repo `.nvmrc`; `verify-blog` uses nvm when available).
 - `pnpm install` at the repo root.
-- Run `.cursor/skills/verify-myblog/scripts/verify-myblog launch` so both Workers share one isolated local D1 persist directory (`MYBLOG_PERSIST_STATE`).
+- Run `.cursor/skills/verify-blog/scripts/verify-blog launch` so both Workers share one isolated local D1 persist directory (`BLOG_PERSIST_STATE`).
 - Default URLs: web `http://localhost:5173`, admin `http://localhost:5174` (use `localhost`, not `127.0.0.1`, when Vite listens on `::1` only).
 - Never hit remote Cloudflare (`--remote`, deploy, or production Access). Local D1 only.
 - Never drive Workers you did not start in this verification run.
 
 ## Driving conventions
 
-- Use `verify-myblog doctor` before every drive when anything looks wrong.
+- Use `verify-blog doctor` before every drive when anything looks wrong.
 - Prefer stable handles from the feature files (`#title`, `公開する`, route paths).
 - Admin local runs use the fixture JWT in `fixtures/local-access-jwt.txt` as `CF-Access-Jwt-Assertion` for harness parity only. Production Access is edge-only; the admin Worker does not validate that header locally.
-- Restore or remove scratch admin `.dev.vars` during cleanup; do not delete evidence under `artifacts/verify-myblog/`.
+- Restore or remove scratch admin `.dev.vars` during cleanup; do not delete evidence under `artifacts/verify-blog/`.
 
 ## Proof and skip reporting
 
@@ -28,7 +28,7 @@ This directory is the maintained source for verifying user-facing behavior of th
 
 ## Feature entry contract
 
-Each feature file uses exactly four H2 sections: `Sub-features`, `How to get to it (user POV)`, `Driving it with verify-myblog`, and `Gotchas`.
+Each feature file uses exactly four H2 sections: `Sub-features`, `How to get to it (user POV)`, `Driving it with verify-blog`, and `Gotchas`.
 
 ## Features
 

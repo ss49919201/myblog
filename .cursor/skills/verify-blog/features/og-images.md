@@ -11,16 +11,16 @@ Social preview images are served as PNGs at `/og/site.png` and `/og/posts/<slug>
 
 - Follow `og:image` meta tags on pages, or request the PNG paths directly.
 
-## Driving it with verify-myblog
+## Driving it with verify-blog
 
 Preconditions:
 
-- `verify-myblog doctor` passes.
+- `verify-blog doctor` passes.
 - Target slug exists in local D1 (seed or a post created via admin).
 
-- **Site OG.** `curl -sS -o artifacts/og-site.png -w '%{http_code}\n' "$MYBLOG_WEB_URL/og/site.png"` prints `200` and writes a PNG larger than 1 KB.
+- **Site OG.** `curl -sS -o artifacts/og-site.png -w '%{http_code}\n' "$BLOG_WEB_URL/og/site.png"` prints `200` and writes a PNG larger than 1 KB.
 
-- **Post OG.** `curl -sS -o artifacts/og-post-seed.png -w '%{http_code}\n' "$MYBLOG_WEB_URL/og/posts/hello-hono.png"` prints `200` and writes a PNG larger than 1 KB.
+- **Post OG.** `curl -sS -o artifacts/og-post-seed.png -w '%{http_code}\n' "$BLOG_WEB_URL/og/posts/hello-hono.png"` prints `200` and writes a PNG larger than 1 KB.
 
 ## Gotchas
 
