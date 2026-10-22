@@ -17,7 +17,7 @@
     "db:schema:check": "node scripts/db.mjs check"
   },
   "dependencies": {
-    "@fontsource/noto-sans-jp": "5.3.0",
+    "@fontsource/noto-sans-jp": "5.3.1",
     "drizzle-orm": "0.45.4",
     "hono": "4.13.13",
     "neverthrow": "8.2.0",
