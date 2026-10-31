@@ -1,3 +1,5 @@
+INSERT INTO site_settings (id, site_title) VALUES (1, 'blog');
+
 INSERT INTO posts (slug, title, published_at, body_html) VALUES
 (
   'hello-hono',

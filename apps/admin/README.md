@@ -20,7 +20,7 @@
 | `PUBLIC_WEB_URL` | var | 公開サイトの origin（成功時に記事 URL を組み立てる） |
 | D1 `DB` | binding | `apps/web` と同じ database ID |
 
-[`cloudflare.config.ts`](cloudflare.config.ts) の `PUBLIC_WEB_URL` と D1 `id` を本番値に差し替えてから `pnpm run deploy`（`cf deploy`）します。
+[`cloudflare.config.ts`](cloudflare.config.ts) の `PUBLIC_WEB_URL` を本番値に差し替え、`DATABASE_ID` に本番 D1 の ID を渡してから `pnpm run deploy`（`cf deploy`）します（`apps/web` と同じ ID）。
 
 単体シークレットは `cf` 未対応のため `npx wrangler secret put <NAME> --name blog-admin` を使います（[参考](https://developers.cloudflare.com/cf/wrangler/reference/)）。
 

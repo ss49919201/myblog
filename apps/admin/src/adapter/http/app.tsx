@@ -10,6 +10,7 @@ import type { Env } from "../../env";
 import { ComposePage } from "../../views/ComposePage";
 import { markdownItRenderer } from "../markdown/markdown-it-renderer";
 import { createD1PostRepository } from "../persistence/d1-post-repository";
+import { registerSettingsBasicRoutes } from "./settings-basic";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -91,5 +92,7 @@ app.post(
     );
   },
 );
+
+registerSettingsBasicRoutes(app);
 
 export default app;

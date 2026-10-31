@@ -1,4 +1,4 @@
-import { ogImage, palette, SITE_NAME } from '../theme'
+import { ogImage, palette } from '../theme'
 import { escapeHtml } from './escape-html'
 import { ogFontFamily } from './fonts'
 
@@ -34,13 +34,13 @@ function innerSurfaceStyle(): string {
   ].join('; ')
 }
 
-export function siteOgHtml(): string {
+export function siteOgHtml(siteTitle: string): string {
   return `
     <div style="${outerFrameStyle()}">
       <div style="${innerSurfaceStyle()}">
       <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
         <p style="margin: 0; font-size: 72px; font-weight: 700; letter-spacing: 0.02em;">
-          ${escapeHtml(SITE_NAME)}
+          ${escapeHtml(siteTitle)}
         </p>
       </div>
       </div>
@@ -48,7 +48,7 @@ export function siteOgHtml(): string {
   `
 }
 
-export function postOgHtml(title: string): string {
+export function postOgHtml(title: string, siteTitle: string): string {
   const safeTitle = escapeHtml(title)
   return `
     <div style="${outerFrameStyle()}">
@@ -71,7 +71,7 @@ export function postOgHtml(title: string): string {
         font-size: ${ogImage.siteLabelFontSizePx}px;
         font-weight: 700;
         color: ${palette.muted};
-      ">${escapeHtml(SITE_NAME)}</p>
+      ">${escapeHtml(siteTitle)}</p>
       </div>
     </div>
   `

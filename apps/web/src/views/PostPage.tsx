@@ -8,10 +8,11 @@ import { Layout } from './Layout'
 type PostPageProps = {
   post: Post
   meta: PageMeta
+  siteTitle: string
 }
 
-export const PostPage: FC<PostPageProps> = ({ post, meta }) => (
-  <Layout title={meta.title} meta={meta}>
+export const PostPage: FC<PostPageProps> = ({ post, meta, siteTitle }) => (
+  <Layout title={meta.title} meta={meta} siteTitle={siteTitle}>
     <article class="article">
       <h1 class="article-title">{post.title}</h1>
       <p class="article-meta">

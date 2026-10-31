@@ -139,9 +139,10 @@ const styles = `
 type LayoutProps = PropsWithChildren<{
   title: string
   meta: PageMeta
+  siteTitle: string
 }>
 
-export const Layout: FC<LayoutProps> = ({ title, meta, children }) => (
+export const Layout: FC<LayoutProps> = ({ title, meta, siteTitle, children }) => (
   <html lang="ja">
     <head>
       <meta charset="utf-8" />
@@ -161,7 +162,7 @@ export const Layout: FC<LayoutProps> = ({ title, meta, children }) => (
       <div class="wrap">
         <header>
           <p class="site-title">
-            <a href="/">blog</a>
+            <a href="/">{siteTitle}</a>
           </p>
         </header>
         <main>{children}</main>

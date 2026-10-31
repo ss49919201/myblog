@@ -7,10 +7,11 @@ import { Layout } from './Layout'
 type HomePageProps = {
   posts: Post[]
   meta: PageMeta
+  siteTitle: string
 }
 
-export const HomePage: FC<HomePageProps> = ({ posts, meta }) => (
-  <Layout title={meta.title} meta={meta}>
+export const HomePage: FC<HomePageProps> = ({ posts, meta, siteTitle }) => (
+  <Layout title={meta.title} meta={meta} siteTitle={siteTitle}>
     <ul class="post-list">
       {posts.map((post) => (
         <li key={post.slug} class="post-card">

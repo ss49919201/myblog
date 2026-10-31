@@ -4,10 +4,11 @@ import { Layout } from './Layout'
 
 type ServerErrorPageProps = {
   meta: PageMeta
+  siteTitle: string
 }
 
-export const ServerErrorPage: FC<ServerErrorPageProps> = ({ meta }) => (
-  <Layout title={meta.title} meta={meta}>
+export const ServerErrorPage: FC<ServerErrorPageProps> = ({ meta, siteTitle }) => (
+  <Layout title={meta.title} meta={meta} siteTitle={siteTitle}>
     <div class="panel">
       <h1 class="page-heading">サーバーエラー</h1>
       <p>記事の取得に失敗しました。しばらくしてから再度お試しください。</p>
