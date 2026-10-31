@@ -10,7 +10,7 @@ import {
 import { registerOgRoutes } from './og/routes'
 import { renderPostsError } from './posts/render-posts-error'
 import { getPost, listPosts } from './posts/repository'
-import { SITE_NAME } from './theme'
+import { resolveSiteTitle } from './site-settings/resolve-site-title'
 import { HomePage } from './views/HomePage'
 import { PostPage } from './views/PostPage'
 
@@ -21,39 +21,41 @@ app.use('*', jsxRenderer())
 registerOgRoutes(app)
 
 app.get('/', async (c) => {
+  const siteTitle = await resolveSiteTitle(c.env.DB)
   const result = await listPosts(c.env.DB)
   return result.match(
     (posts) => {
       const meta = {
-        title: SITE_NAME,
-        description: `${SITE_NAME} の記事一覧です。`,
+        title: siteTitle,
+        description: `${siteTitle} の記事一覧です。`,
         type: 'website' as const,
         url: absoluteUrl(c, '/'),
         image: siteOgImageUrl(c),
-        imageAlt: SITE_NAME,
+        imageAlt: siteTitle,
       }
-      return c.render(<HomePage posts={posts} meta={meta} />)
+      return c.render(<HomePage posts={posts} meta={meta} siteTitle={siteTitle} />)
     },
-    (error) => renderPostsError(c, error),
+    (error) => renderPostsError(c, error, siteTitle),
   )
 })
 
 app.get('/posts/:slug', async (c) => {
   const slug = c.req.param('slug')
+  const siteTitle = await resolveSiteTitle(c.env.DB)
   const result = await getPost(c.env.DB, slug)
   return result.match(
     (post) => {
       const meta = {
-        title: `${post.title} | ${SITE_NAME}`,
+        title: `${post.title} | ${siteTitle}`,
         description: excerptFromBody(post.bodyHtml),
         type: 'article' as const,
         url: absoluteUrl(c, `/posts/${post.slug}`),
         image: postOgImageUrl(c, post.slug),
         imageAlt: post.title,
       }
-      return c.render(<PostPage post={post} meta={meta} />)
+      return c.render(<PostPage post={post} meta={meta} siteTitle={siteTitle} />)
     },
-    (error) => renderPostsError(c, error),
+    (error) => renderPostsError(c, error, siteTitle),
   )
 })
 

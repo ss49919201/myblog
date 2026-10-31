@@ -24,7 +24,22 @@ const styles = `
   h1 {
     font-size: 1.25rem;
     font-weight: 800;
-    margin: 0;
+    margin: 0 0 0.75rem;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+  }
+  nav a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  nav a[aria-current="page"] {
+    text-decoration: none;
+    border-bottom: 3px solid var(--accent);
   }
   .panel {
     padding: 1.25rem 1rem;
@@ -114,6 +129,12 @@ export const ComposePage: FC<ComposePageProps> = ({
       <div class="wrap">
         <header>
           <h1>{SITE_NAME}</h1>
+          <nav aria-label="管理メニュー">
+            <a href="/" aria-current="page">
+              新規入稿
+            </a>
+            <a href="/settings/basic">基本設定</a>
+          </nav>
         </header>
         <div class="panel">
           {errorMessage ? <div class="error">{errorMessage}</div> : null}

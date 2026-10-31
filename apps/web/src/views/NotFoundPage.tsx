@@ -4,10 +4,11 @@ import { Layout } from './Layout'
 
 type NotFoundPageProps = {
   meta: PageMeta
+  siteTitle: string
 }
 
-export const NotFoundPage: FC<NotFoundPageProps> = ({ meta }) => (
-  <Layout title={meta.title} meta={meta}>
+export const NotFoundPage: FC<NotFoundPageProps> = ({ meta, siteTitle }) => (
+  <Layout title={meta.title} meta={meta} siteTitle={siteTitle}>
     <div class="panel">
       <h1 class="page-heading">ページが見つかりません</h1>
       <p>指定された記事は存在しないか、URL が間違っています。</p>

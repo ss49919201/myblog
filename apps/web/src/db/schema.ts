@@ -1,4 +1,9 @@
-import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+
+export const siteSettings = sqliteTable('site_settings', {
+  id: integer('id').primaryKey().notNull(),
+  siteTitle: text('site_title').notNull(),
+})
 
 export const posts = sqliteTable('posts', {
   slug: text('slug').primaryKey().notNull(),
